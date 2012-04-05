@@ -10,29 +10,48 @@
     android:layout_height="fill_parent"
     android:layout_weight="1"
     />
+  
+  <Button
+        android:id="@+id/button_capture"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentLeft="true"
+        android:layout_marginTop="20dip"
+        android:layout_marginLeft="40dip"
+        android:background="@null"
+        android:text="Go"
+        android:textColor="#ffffff" 
+        android:textSize="30dip"/>
 
-<TableLayout
-    android:layout_width="wrap_content"
-    android:layout_height="wrap_content"
-    android:layout_gravity="center"
-    android:stretchColumns="*" >
+  <ImageButton
+        android:id="@+id/button_switch"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentRight="true"
+        android:layout_marginRight="40dip"
+        android:layout_marginTop="20dip"
+        android:background="@null"
+        android:src="@drawable/togglecamera" />
 
-    <TableRow>
+  <TextView
+      android:id="@+id/theword"
+      android:layout_width="fill_parent"
+      android:layout_height="wrap_content"
+      android:layout_alignParentBottom="true"
+      android:layout_centerHorizontal="true"
+      android:layout_marginBottom="20dip"
+      android:gravity="center"
+      android:textSize="40dip"
+      android:text="GUESSTHEWORD" />
 
-        <Button
-            android:id="@+id/button_capture"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:text="Capture" />
-
-        <Button
-            android:id="@+id/button_switch"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:text="Switch" />
-    </TableRow>
-</TableLayout>
+  <TextView
+      android:id="@+id/countdown"
+      android:layout_width="fill_parent"
+      android:layout_height="wrap_content"
+      android:layout_centerInParent="true"
+      android:gravity="center"
+      android:textSize="80dip"
+      android:textColor="#FF0000"
+      android:text="9" />
 
 </RelativeLayout>

@@ -14,16 +14,21 @@ import java.util.Date;
 
 import android.app.Activity;
 import android.content.Context;
+import android.graphics.Color;
 import android.hardware.Camera;
 import android.media.CamcorderProfile;
 import android.media.MediaRecorder;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.CountDownTimer;
 import android.os.Environment;
 import android.util.Log;
 import android.view.View;
+import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.FrameLayout;
+import android.widget.ImageButton;
+import android.widget.TextView;
 import android.widget.Toast;
 
 public class CameraActivity extends Activity {
@@ -37,12 +42,18 @@ public class CameraActivity extends Activity {
 
 	private boolean isRecording = false;
 
-	Button captureButton, switchButton;
+	Button captureButton;
+	ImageButton switchButton;
+	TextView countDown, timing;
 
 	// Add a listener to the Capture button
 
 	void setCaptureButtonText(String t) {
 		captureButton.setText(t);
+	}
+
+	void setCountDownText(String t) {
+		countDown.setText(t);
 	}
 
 	private boolean prepareVideoRecorder() {
@@ -129,7 +140,11 @@ public class CameraActivity extends Activity {
 			mMediaRecorder.start();
 
 			// inform the user that recording has started
-			setCaptureButtonText("Stop");
+			captureButton.setEnabled(true);
+			//captureButton.setBackgroundColor(Color.RED);
+			captureButton.setVisibility(View.VISIBLE);
+			captureButton.setTextColor(Color.RED);
+			setCaptureButtonText("< Recording >");
 			isRecording = true;
 			return true;
 		} else {
@@ -148,7 +163,9 @@ public class CameraActivity extends Activity {
 			mCamera.lock(); // take camera access back from MediaRecorder
 
 			// inform the user that recording has stopped
-			setCaptureButtonText("Capture");
+			//setCaptureButtonText("Capture");
+			captureButton.setEnabled(false);
+			captureButton.setVisibility(View.INVISIBLE);
 			isRecording = false;
 		}
 	}
@@ -172,7 +189,9 @@ public class CameraActivity extends Activity {
 		initCamera();
 		setupPreview();
 
-		switchButton = (Button) findViewById(R.id.button_switch);
+		countDown = (TextView) findViewById(R.id.countdown);
+		setCountDownText("");
+		switchButton = (ImageButton) findViewById(R.id.button_switch);
 		switchButton.setOnClickListener(new View.OnClickListener() {
 			@Override
 			public void onClick(View v) {
@@ -200,10 +219,43 @@ public class CameraActivity extends Activity {
 					stopRecording();
 				} else {
 					// initialize video camera
-					startRecording();
+					countDown.setTextColor(Color.GREEN);
+					switchButton.setVisibility(View.INVISIBLE);
+					captureButton.setEnabled(false);
+					captureButton.setVisibility(View.INVISIBLE);
+					
+					new CountDownTimer(4000, 1000) {
+
+						public void onTick(long millisUntilFinished) {
+							setCountDownText(Long.toString(millisUntilFinished / 1000));
+						}
+
+						public void onFinish() {
+							startRecording();
+							setCountDownText("");
+							countDown.setTextColor(Color.RED);
+							
+							new CountDownTimer(10000, 1000) {
+
+								public void onTick(long timeleft) {
+									setCountDownText(Long.toString(timeleft / 1000));
+								}
+
+								public void onFinish() {
+									stopRecording();
+									setCountDownText("");
+									
+								}
+							}.start();
+							
+						}
+					}.start();
 				}
 			}
 		});
+		
+		captureButton.setTextColor(Color.GREEN);
+		setCaptureButtonText("<Let's start>");
 	}
 
 	@Override
@@ -270,4 +322,18 @@ public class CameraActivity extends Activity {
 		return mediaFile;
 	}
 
+	protected void onResume() {
+	    // Disables power-saving
+	    getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+	    Log.d(TAG,"onResume called");
+	    super.onResume();
+	}
+
+	public void onBackPressed() {
+	    // Enables power-saving
+	    getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+	    Log.d(TAG,"onBackPressed called");
+	    super.onBackPressed();
+	}
+	
 }
