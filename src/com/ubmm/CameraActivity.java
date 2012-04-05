@@ -114,7 +114,9 @@ public class CameraActivity extends Activity {
 			c = Camera.open(camId); // attempt to get a Camera instance
 		} catch (Exception e) {
 			// Camera is not available (in use or does not exist)
+			Log.d(TAG,"Camera is not available!");
 		}
+		Log.d(TAG,"Camera allocated");
 		return c; // returns null if camera is unavailable
 	}
 
@@ -179,10 +181,11 @@ public class CameraActivity extends Activity {
 		Log.d(TAG, "get result = " + Integer.toString(result));
 
 		if (result==0) {
+			releaseCamera();
 			finish();
 		} else {
 			initCamera();
-			//setupPreview();
+			setupPreview();
 			resetButtons();
 		}
 	}

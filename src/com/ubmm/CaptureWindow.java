@@ -33,7 +33,7 @@ public class CaptureWindow extends SurfaceView implements SurfaceHolder.Callback
         	Log.d(TAG,"Surface created");
             mCamera.setPreviewDisplay(holder);
             mCamera.startPreview();
-        } catch (IOException e) {
+        } catch (Exception e) {
             Log.d(TAG, "Error setting camera preview: " + e.getMessage());
         }
     }

@@ -6,6 +6,7 @@ import android.app.Activity;
 import android.content.Intent;
 import android.media.MediaPlayer;
 import android.media.MediaPlayer.OnCompletionListener;
+import android.media.MediaPlayer.OnPreparedListener;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.SurfaceHolder;
@@ -15,7 +16,11 @@ import android.view.View.OnClickListener;
 import android.widget.ImageButton;
 
 public class ConfirmVideo extends Activity implements SurfaceHolder.Callback,
-		OnClickListener {
+		OnClickListener, OnPreparedListener {
+	
+	private static final int RESULT_USER_GOOD = 0;
+	private static final int RESULT_USER_REDO = 1;
+
 	final String TAG = "ConfirmVideo";
 
 	MediaPlayer mediaPlayer;
@@ -49,10 +54,80 @@ public class ConfirmVideo extends Activity implements SurfaceHolder.Callback,
 		surfaceHolder.addCallback(this);
 		surfaceHolder.setType(SurfaceHolder.SURFACE_TYPE_PUSH_BUFFERS);
 
+	}
+	
+	public void onPrepared(MediaPlayer mp) {
+        Log.d(TAG, "onPrepared called");
+        playing = true;
+		mediaPlayer.setLooping(true);
+        mediaPlayer.start();
+        Log.d(TAG, "mediaPlayer started");
+    }
+	
+	@Override
+	public void surfaceChanged(SurfaceHolder holder, int format, int width,
+			int height) {
+		Log.d(TAG, "surface changed");
+	}
+
+	@Override
+	public void surfaceCreated(SurfaceHolder holder) {
+		Log.d(TAG, "surface created");
+		playVideo();
+	}
+
+	@Override
+	public void surfaceDestroyed(SurfaceHolder holder) {
+		Log.d(TAG, "surface destroyed");
+		if (playing) {
+			playing = false;
+			mediaPlayer.stop();
+		}
+	}
+
+	@Override
+	public void onClick(View v) {
+		int buttonId = v.getId();
+		int result = RESULT_USER_GOOD;
+//		if (playing) {
+//			playing = false;
+//			mediaPlayer.stop();
+//		}
+		switch (buttonId) {
+		case R.id.good_button:
+			result = RESULT_USER_GOOD;
+			break;
+		case R.id.bad_button:
+			result = RESULT_USER_REDO;
+		}
+		returnPrevious(result);
+	}
+	
+	public void onBackPressed() {
+		// Enables power-saving
+		Log.d(TAG, "onBackPressed called");
+		returnPrevious(RESULT_USER_REDO); 
+		//super.onBackPressed();
+	}
+	
+	private void returnPrevious(int result) {
+		if (playing) {
+			playing=false;
+			mediaPlayer.stop();
+		}
+		Intent intent = new Intent();
+		intent.putExtra("code", result);
+		setResult(RESULT_OK, intent);
+		Log.d(TAG, "send result "+Integer.toString(result));
+		releaseMediaPlayer();
+		finish();
+	}
+	
+	public void playVideo() {
 		// Obtain a media player instance
 		mediaPlayer = new MediaPlayer();
-		mediaPlayer.setLooping(true);
-
+		mediaPlayer.setOnPreparedListener(this);
+		
 		mediaPlayer.setOnCompletionListener(new OnCompletionListener() {
 			@Override
 			public void onCompletion(MediaPlayer arg0) {
@@ -60,9 +135,9 @@ public class ConfirmVideo extends Activity implements SurfaceHolder.Callback,
 
 			}
 		});
-
-		mediaPlayer.reset();
+		
 		mediaPlayer.setDisplay(surfaceHolder);
+		mediaPlayer.reset();
 		try {
 			mediaPlayer.setDataSource(filePath);
 			mediaPlayer.prepare();
@@ -78,51 +153,24 @@ public class ConfirmVideo extends Activity implements SurfaceHolder.Callback,
 		}
 		
 	}
+	
+    @Override
+    protected void onPause() {
+        super.onPause();
+        releaseMediaPlayer();
+    }
 
-	@Override
-	public void surfaceChanged(SurfaceHolder holder, int format, int width,
-			int height) {
-		Log.d(TAG, "surface changed");
-	}
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        releaseMediaPlayer();
+    }
 
-	@Override
-	public void surfaceCreated(SurfaceHolder holder) {
-		Log.d(TAG, "surface created");
-		mediaPlayer.start();
-		Log.d(TAG, "mediaPlayer started");
-		playing = true;
-	}
-
-	@Override
-	public void surfaceDestroyed(SurfaceHolder holder) {
-		Log.d(TAG, "surface destroyed");
-		if (playing) {
-			playing = false;
-			mediaPlayer.stop();
-		}
-	}
-
-	@Override
-	public void onClick(View v) {
-		int buttonId = v.getId();
-		int result = 0;
-		if (playing) {
-			playing = false;
-			mediaPlayer.stop();
-		}
-		switch (buttonId) {
-		case R.id.good_button:
-			result = 0;
-			break;
-		case R.id.bad_button:
-			result = 1;
-		}
-
-		Intent intent = new Intent();
-		intent.putExtra("code", result);
-		setResult(RESULT_OK, intent);
-		Log.d(TAG, "send result"+Integer.toString(result));
-		finish();
-	}
-
+    private void releaseMediaPlayer() {
+        if (mediaPlayer != null) {
+            mediaPlayer.release();
+            mediaPlayer = null;
+        }
+    }
+	
 }
