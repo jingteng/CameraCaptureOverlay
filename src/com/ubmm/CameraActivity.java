@@ -1,27 +1,20 @@
 package com.ubmm;
 
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
-import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
-import java.net.URL;
-
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
 import android.app.Activity;
-import android.content.Context;
+import android.content.Intent;
 import android.graphics.Color;
 import android.hardware.Camera;
 import android.media.CamcorderProfile;
 import android.media.MediaRecorder;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.CountDownTimer;
 import android.os.Environment;
+import android.os.Handler;
 import android.util.Log;
 import android.view.View;
 import android.view.WindowManager;
@@ -29,7 +22,6 @@ import android.widget.Button;
 import android.widget.FrameLayout;
 import android.widget.ImageButton;
 import android.widget.TextView;
-import android.widget.Toast;
 
 public class CameraActivity extends Activity {
 
@@ -37,11 +29,11 @@ public class CameraActivity extends Activity {
 	private Camera mCamera;
 	private CaptureWindow mPreview;
 	private MediaRecorder mMediaRecorder;
+	private String videoFileName;
 
 	public int camId = 1;
 
 	private boolean isRecording = false;
-
 	Button captureButton;
 	ImageButton switchButton;
 	TextView countDown, timing;
@@ -92,8 +84,8 @@ public class CameraActivity extends Activity {
 		// mMediaRecorder.setMaxDuration(1000);
 
 		// Step 4: Set output file
-		mMediaRecorder.setOutputFile(getOutputMediaFile(MEDIA_TYPE_VIDEO)
-				.toString());
+		videoFileName = getOutputMediaFile(MEDIA_TYPE_VIDEO).toString();
+		mMediaRecorder.setOutputFile(videoFileName);
 
 		// Step 5: Set the preview output
 		mMediaRecorder.setPreviewDisplay(mPreview.getHolder().getSurface());
@@ -141,7 +133,7 @@ public class CameraActivity extends Activity {
 
 			// inform the user that recording has started
 			captureButton.setEnabled(true);
-			//captureButton.setBackgroundColor(Color.RED);
+			// captureButton.setBackgroundColor(Color.RED);
 			captureButton.setVisibility(View.VISIBLE);
 			captureButton.setTextColor(Color.RED);
 			setCaptureButtonText("< Recording >");
@@ -163,10 +155,35 @@ public class CameraActivity extends Activity {
 			mCamera.lock(); // take camera access back from MediaRecorder
 
 			// inform the user that recording has stopped
-			//setCaptureButtonText("Capture");
+			// setCaptureButtonText("Capture");
 			captureButton.setEnabled(false);
 			captureButton.setVisibility(View.INVISIBLE);
 			isRecording = false;
+
+			// release camera and quit
+			releaseCamera();
+
+			Intent intent = new Intent(this, ConfirmVideo.class);
+			intent.putExtra("videofile", videoFileName);
+			final int result = 1;
+			startActivityForResult(intent, result);
+		}
+	}
+
+	@Override
+	public void onActivityResult(int requestCode, int resultCode, Intent data) {
+		super.onActivityResult(requestCode, resultCode, data);
+
+		//Bundle extras = getIntent().getExtras();
+		int result = data.getIntExtra("code",0);
+		Log.d(TAG, "get result = " + Integer.toString(result));
+
+		if (result==0) {
+			finish();
+		} else {
+			initCamera();
+			//setupPreview();
+			resetButtons();
 		}
 	}
 
@@ -184,7 +201,7 @@ public class CameraActivity extends Activity {
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.camera);
-
+		new Handler();
 		// Create our Preview view and set it as the content of our activity.
 		initCamera();
 		setupPreview();
@@ -223,41 +240,52 @@ public class CameraActivity extends Activity {
 					switchButton.setVisibility(View.INVISIBLE);
 					captureButton.setEnabled(false);
 					captureButton.setVisibility(View.INVISIBLE);
-					
+
 					new CountDownTimer(4000, 1000) {
 
 						public void onTick(long millisUntilFinished) {
-							setCountDownText(Long.toString(millisUntilFinished / 1000));
+							setCountDownText(Long
+									.toString(millisUntilFinished / 1000));
 						}
 
 						public void onFinish() {
 							startRecording();
 							setCountDownText("");
 							countDown.setTextColor(Color.RED);
-							
+
 							new CountDownTimer(10000, 1000) {
 
 								public void onTick(long timeleft) {
-									setCountDownText(Long.toString(timeleft / 1000));
+									setCountDownText(Long
+											.toString(timeleft / 1000));
 								}
 
 								public void onFinish() {
 									stopRecording();
 									setCountDownText("");
-									
+
 								}
 							}.start();
-							
+
 						}
 					}.start();
 				}
 			}
 		});
-		
+
+		resetButtons();
+	}
+	
+	public void resetButtons() {
+		captureButton.setVisibility(View.VISIBLE);
+		captureButton.setEnabled(true);
 		captureButton.setTextColor(Color.GREEN);
 		setCaptureButtonText("<Let's start>");
+		
+		switchButton.setEnabled(true);
+		switchButton.setVisibility(View.VISIBLE);
 	}
-
+	
 	@Override
 	protected void onPause() {
 		super.onPause();
@@ -323,17 +351,17 @@ public class CameraActivity extends Activity {
 	}
 
 	protected void onResume() {
-	    // Disables power-saving
-	    getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
-	    Log.d(TAG,"onResume called");
-	    super.onResume();
+		// Disables power-saving
+		getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+		Log.d(TAG, "onResume called");
+		super.onResume();
 	}
 
 	public void onBackPressed() {
-	    // Enables power-saving
-	    getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
-	    Log.d(TAG,"onBackPressed called");
-	    super.onBackPressed();
+		// Enables power-saving
+		getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+		Log.d(TAG, "onBackPressed called");
+		super.onBackPressed();
 	}
-	
+
 }
