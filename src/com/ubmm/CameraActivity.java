@@ -7,6 +7,8 @@ import java.util.Date;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.content.pm.ActivityInfo;
+import android.content.res.Configuration;
 import android.graphics.Color;
 import android.hardware.Camera;
 import android.media.CamcorderProfile;
@@ -60,11 +62,49 @@ public class CameraActivity extends Activity {
 
 		if (camId == 0)
 			mMediaRecorder.setOrientationHint(90);
-		else
-			mMediaRecorder.setOrientationHint(270);
+		else {
+			int ot = this.getResources().getConfiguration().orientation;
+			if (ot==Configuration.ORIENTATION_LANDSCAPE) {
+				mMediaRecorder.setOrientationHint(180);
+				Log.d(TAG,"hint set to 90 (landscape)");
+			} else {
+				mMediaRecorder.setOrientationHint(270);
+				Log.d(TAG,"hint set to 180 (portrati)");
+			}
+		}
+			
 
+//        int ot = this.getResources().getConfiguration().orientation;
+//        int ot2 = 0;
+//		switch (ot) {
+//
+//		case Configuration.ORIENTATION_LANDSCAPE:
+//			ot2=0;
+//			Log.d("my orient", "ORIENTATION_LANDSCAPE");
+//			break;
+//		case Configuration.ORIENTATION_PORTRAIT:
+//			ot2=90;
+//			Log.d("my orient", "ORIENTATION_PORTRAIT");
+//			break;
+//		case Configuration.ORIENTATION_SQUARE:
+//			ot2=180;
+//			Log.d("my orient", "ORIENTATION_SQUARE");
+//			break;
+//		case Configuration.ORIENTATION_UNDEFINED:
+//			ot2=270;
+//			Log.d("my orient", "ORIENTATION_UNDEFINED");
+//			break;
+//		default:
+//			Log.d("my orient", "default val");
+//			break;
+//		}
+//		if (camId==1) ot2=360-ot2;
+//		if (ot2<0) ot2=ot2+360;
+//		if (ot2>=360) ot2=0;
+//		mMediaRecorder.setOrientationHint(ot2);
 		// Step 2: Set sources
 		mMediaRecorder.setAudioSource(MediaRecorder.AudioSource.CAMCORDER);
+		
 		mMediaRecorder.setVideoSource(MediaRecorder.VideoSource.CAMERA);
 
 		// Step 3: Set a CamcorderProfile (requires API Level 8 or higher)
@@ -204,6 +244,7 @@ public class CameraActivity extends Activity {
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.camera);
+		setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
 		new Handler();
 		// Create our Preview view and set it as the content of our activity.
 		initCamera();

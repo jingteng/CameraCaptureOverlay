@@ -1,8 +1,7 @@
 package com.ubmm;
 
-import java.io.IOException;
-
 import android.content.Context;
+import android.content.res.Configuration;
 import android.hardware.Camera;
 import android.util.Log;
 import android.view.SurfaceHolder;
@@ -66,6 +65,30 @@ public class CaptureWindow extends SurfaceView implements SurfaceHolder.Callback
         // start preview with new settings
         try {
             mCamera.setPreviewDisplay(mHolder);
+            int ot = this.getResources().getConfiguration().orientation;
+			switch (ot) {
+
+			case Configuration.ORIENTATION_LANDSCAPE:
+				mCamera.setDisplayOrientation(0);
+				Log.d("my orient", "ORIENTATION_LANDSCAPE");
+				break;
+			case Configuration.ORIENTATION_PORTRAIT:
+				mCamera.setDisplayOrientation(90);
+				Log.d("my orient", "ORIENTATION_PORTRAIT");
+				break;
+			case Configuration.ORIENTATION_SQUARE:
+				mCamera.setDisplayOrientation(270);
+				Log.d("my orient", "ORIENTATION_SQUARE");
+				break;
+			case Configuration.ORIENTATION_UNDEFINED:
+				mCamera.setDisplayOrientation(0);
+				Log.d("my orient", "ORIENTATION_UNDEFINED");
+				break;
+			default:
+				Log.d("my orient", "default val");
+				break;
+			}
+            
             mCamera.startPreview();
 
         } catch (Exception e){

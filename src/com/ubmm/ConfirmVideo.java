@@ -4,6 +4,7 @@ import java.io.IOException;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.content.pm.ActivityInfo;
 import android.media.MediaPlayer;
 import android.media.MediaPlayer.OnCompletionListener;
 import android.media.MediaPlayer.OnPreparedListener;
@@ -12,6 +13,7 @@ import android.util.Log;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.View;
+import android.view.WindowManager;
 import android.view.View.OnClickListener;
 import android.widget.ImageButton;
 
@@ -38,6 +40,7 @@ public class ConfirmVideo extends Activity implements SurfaceHolder.Callback,
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.confirm_layout);
+		setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
 
 		Intent sender = getIntent();
 		filePath = sender.getExtras().getString("videofile");
@@ -81,7 +84,10 @@ public class ConfirmVideo extends Activity implements SurfaceHolder.Callback,
 		Log.d(TAG, "surface destroyed");
 		if (playing) {
 			playing = false;
+			if (mediaPlayer!=null) {
 			mediaPlayer.stop();
+			mediaPlayer=null;
+			}
 		}
 	}
 
@@ -106,6 +112,7 @@ public class ConfirmVideo extends Activity implements SurfaceHolder.Callback,
 	public void onBackPressed() {
 		// Enables power-saving
 		Log.d(TAG, "onBackPressed called");
+		getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 		returnPrevious(RESULT_USER_REDO); 
 		//super.onBackPressed();
 	}
@@ -172,5 +179,10 @@ public class ConfirmVideo extends Activity implements SurfaceHolder.Callback,
             mediaPlayer = null;
         }
     }
-	
+	protected void onResume() {
+		// Disables power-saving
+		getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+		Log.d(TAG, "onResume called");
+		super.onResume();
+	}
 }
