@@ -4,12 +4,12 @@ import java.io.IOException;
 
 import android.app.Activity;
 import android.content.Context;
+import android.content.pm.ActivityInfo;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
-import android.graphics.Paint.Align;
 import android.graphics.Paint.Style;
 import android.graphics.Rect;
 import android.graphics.Typeface;
@@ -27,6 +27,7 @@ public class TestDrawable extends Activity {
 	/** Called when the activity is first created. */
 	public String usrname="testuser2";
 	public Bitmap[] pics;
+	public Bitmap newGamePic;
 	public int picNum;
 	
 	public void loadImages() { 
@@ -38,12 +39,14 @@ public class TestDrawable extends Activity {
 		pics[3]=BitmapFactory.decodeResource(getResources(), R.drawable.p4);
 		pics[4]=BitmapFactory.decodeResource(getResources(), R.drawable.p5);
 		
+		newGamePic=BitmapFactory.decodeResource(getResources(), R.drawable.newgame);
 	}
 	
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		requestWindowFeature(Window.FEATURE_NO_TITLE);
+		setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
 		loadImages();
 		Preview mPreview = new Preview(this);
 		DrawOnTop mDraw = new DrawOnTop(this);
@@ -54,14 +57,14 @@ public class TestDrawable extends Activity {
 	
 	class DrawOnTop extends View {
 		private static final String TAG = "DrawView";
+		
 		private float mPreviousX;
 		private float mPreviousY;
-
 		private boolean prepared=false;
 
 		float canvasWidth;
 		float canvasHeight;
-
+		
 		float padding = 15.0f;
 		int unitSize;
 		float pich;
@@ -70,6 +73,9 @@ public class TestDrawable extends Activity {
 		private float bannerw=0;
 		int p1L, p1R, p1T, p1B; // start point of the first picture
 		int pNR; // end point (right) of the last picture
+		private boolean pressedButton=false;
+		
+		Rect createGameButtonPos;
 
 		public DrawOnTop(Context context) {
 			super(context);
@@ -87,11 +93,27 @@ public class TestDrawable extends Activity {
 			canvasWidth = canvas.getWidth();
 			canvasHeight = canvas.getHeight();
 
-			pich = (canvasHeight / 2 - padding) * 2 / 3;
-			picw = (canvasWidth - padding * 2) / 2;
+			pich = canvasHeight / 2;
+			picw = canvasWidth / 2;
 			unitSize = (int)picw + (int)padding*2;
 			
-			bannerh = pich/2;
+			bannerh = (canvasHeight - pich)/2 - padding;
+			
+			int createGameButtonH = (int)(canvasHeight - bannerh - pich - padding*2);
+			int createGameButtonW = (int)(canvasWidth/2);
+			
+			int createGameButtonL = ((int)canvasWidth-createGameButtonW)/2;
+			int createGameButtonR = createGameButtonL + createGameButtonW;
+			int createGameButtonB = (int)(canvasHeight-2*padding);
+			int createGameButtonT = createGameButtonB - createGameButtonH;
+			
+			Log.d(TAG,"Newgame button: ("+Integer.toString(createGameButtonL)+
+					","+Integer.toString(createGameButtonT)+
+					","+Integer.toString(createGameButtonR)+
+					","+Integer.toString(createGameButtonB)+")");
+			
+			createGameButtonPos = new Rect(createGameButtonL, createGameButtonT,
+					createGameButtonR, createGameButtonB);
 			
 			if (picNum%2==1) {
 				p1L = (int)((canvasWidth-picw)/2) - unitSize*(picNum/2);
@@ -132,7 +154,7 @@ public class TestDrawable extends Activity {
 			} while (bannerw>=canvasWidth);
 			
 			float startPositionX = (canvasWidth - bannerw) / 2;
-			float startPositionY = (bannerh + textsize) / 2;
+			float startPositionY = (bannerh + textsize/2) / 2;
 
 			mPaint.setTextAlign(Paint.Align.LEFT);
 			mPaint.setColor(Color.WHITE); 
@@ -143,15 +165,29 @@ public class TestDrawable extends Activity {
 		private void drawPictures(Canvas canvas, Paint paint) {
 			Rect rect = new Rect(p1L, p1T, p1R, p1B);
 			
+			// draw create button
+			canvas.drawBitmap(newGamePic,null,createGameButtonPos,null);
+			
 			for (int i=0; i<picNum; i++) {
-				canvas.drawBitmap(pics[i], null, rect, paint);
+				canvas.drawBitmap(pics[i], null, rect, null);
 				rect.offset(unitSize, 0);
-				//temp.offset(unitSize, 0);
-//				Log.d(TAG,"unitSize=" + Integer.toString(unitSize) + " Draw image at ("+Integer.toString(l)+","
-//						+Integer.toString(r)+")");
 			}
+			pNR = p1R+unitSize*(picNum-1);
 			
-			
+		}
+		
+		// return -1 if nothing is clicked
+		private int getClickId(float x, float y) {
+			if (y>p1T && y<p1B) {
+				int d = (int)x - p1L;
+				int m = d % unitSize;
+				if (m<picw) 
+					return d/unitSize;
+			} else {
+				if (createGameButtonPos.contains((int)x, (int)y))
+					return picNum;
+			}
+			return -1;
 		}
 		
 		@Override
@@ -176,32 +212,44 @@ public class TestDrawable extends Activity {
 
 			float x = e.getX();
 			float y = e.getY();
-
+			
+			
 			switch (e.getAction()) {
-			case MotionEvent.ACTION_MOVE:
-				if ((p1L < 2*padding) && (pNR >= (canvasWidth-2*padding))) {
-					float dx = x - mPreviousX;
-					float dy = y - mPreviousY;
 
+			case MotionEvent.ACTION_DOWN:
+				pressedButton = true;
+				break;				
+			case MotionEvent.ACTION_UP:
+				if (pressedButton) {
+					Log.d(TAG, "Click!");
+					pressedButton=false;
+					int clickedId = getClickId(x,y);
+					Log.d(TAG, "Selected image:"+Integer.toString(clickedId));
+				}
+				break;
+			case MotionEvent.ACTION_MOVE:
+				float dx = x - mPreviousX;
+				pressedButton = false;
+				
+				if ((p1L < 2 * padding) && (pNR >= (canvasWidth - 2 * padding))) {
 					p1L = (int) (p1L + dx * 2);
 					p1R = (int) (p1R + dx * 2);
 				} else {
-					if (p1L>=2*padding) {
-						p1L=p1L-(int)padding;
-						p1R=p1R-(int)padding;
-						//pNR = p1R+unitSize*(picNum-1);
-					}
-					else {
-						p1L+=padding;
-						p1R=p1L+(int)picw;
-						pNR = p1R+unitSize*(picNum-1);
+					if (p1L >= 2 * padding) {
+						p1L = p1L - (int) padding;
+						p1R = p1R - (int) padding;
+					} else {
+						p1L += padding;
+						p1R += padding;
+						pNR = p1R + unitSize * (picNum - 1);
 					}
 				}
+				break;
 			}
-
 			mPreviousX = x;
 			mPreviousY = y;
 			invalidate();
+			
 			return true;
 		}
 	}
