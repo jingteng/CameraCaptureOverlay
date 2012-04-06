@@ -25,6 +25,10 @@
         <activity
             android:name=".ConfirmVideo">
         </activity>
+
+        <activity
+            android:name=".TestDrawable">
+        </activity>
         
         <activity
             android:name=".CameraCaptureOverlayActivity"

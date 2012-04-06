@@ -7,7 +7,7 @@ import android.view.View;
 import android.widget.Button;
 
 public class CameraCaptureOverlayActivity extends Activity {
-	Button startButton;
+	Button startButton, frontButton;
     /** Called when the activity is first created. */
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -19,6 +19,15 @@ public class CameraCaptureOverlayActivity extends Activity {
             public void onClick(View v) {
                 // Perform action on click
             	Intent i = new Intent(getApplicationContext(), CameraActivity.class);
+            	startActivity(i);
+            }
+        });
+        
+        frontButton = (Button) this.findViewById(R.id.front_page_button);
+        frontButton.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                // Perform action on click
+            	Intent i = new Intent(getApplicationContext(), TestDrawable.class);
             	startActivity(i);
             }
         });
