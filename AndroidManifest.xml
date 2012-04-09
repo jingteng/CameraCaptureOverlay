@@ -16,7 +16,7 @@
     <application
         android:icon="@drawable/ic_launcher"
         android:label="@string/app_name" 
-        android:screenOrientation="portrait">
+        android:screenOrientation="portrait" android:debuggable="true">
         
         <activity
             android:name=".CameraActivity">
@@ -29,9 +29,19 @@
         <activity
             android:name=".TestDrawable">
         </activity>
-        
+   
         <activity
-            android:name=".CameraCaptureOverlayActivity"
+            android:name=".TestFacebook">
+        </activity>
+  
+        <activity
+            android:name=".SplashActivity">
+        </activity>
+        <activity
+            android:name=".CameraCaptureOverlayActivity">
+        </activity>
+        <activity
+            android:name=".TestList"
             android:label="@string/app_name"
             android:screenOrientation="portrait" >
             <intent-filter>
@@ -40,6 +50,7 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        
     </application>
 
 </manifest>

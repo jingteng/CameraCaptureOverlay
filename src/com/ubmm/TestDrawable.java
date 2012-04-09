@@ -2,8 +2,17 @@ package com.ubmm;
 
 import java.io.IOException;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import com.facebook.android.AsyncFacebookRunner;
+import com.facebook.android.Facebook;
+import com.ubmm.SessionEvents.AuthListener;
+import com.ubmm.SessionEvents.LogoutListener;
+
 import android.app.Activity;
 import android.content.Context;
+import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -14,21 +23,52 @@ import android.graphics.Paint.Style;
 import android.graphics.Rect;
 import android.graphics.Typeface;
 import android.hardware.Camera;
+import android.net.Uri;
 import android.os.Bundle;
+import android.os.Handler;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.View;
 import android.view.Window;
+import android.view.WindowManager;
 import android.view.ViewGroup.LayoutParams;
+import android.widget.FrameLayout;
+import android.widget.ImageView;
+import android.widget.TextView;
+import android.widget.Toast;
 
 public class TestDrawable extends Activity {
-	/** Called when the activity is first created. */
-	public String usrname="testuser2";
+	private static final String TAG = "TestDrawable";
+	
+	final static int LOGIN_STAGE = 0;
+	final static int LOGGED_STAGE = 1;
+	final static int USERINFO_DOWNLOADED_STAGE = 2;
+	final static int FRIEND_LIST_DOWNLOADED_STAGE = 3;
+	
+	int stage = LOGIN_STAGE;
+	
+	private LoginButton mLoginButton;
+	public String usrname="Loading";
 	public Bitmap[] pics;
 	public Bitmap newGamePic;
 	public int picNum;
+	public Preview mPreview; 
+	
+	private static final String FACEBOOK_APPID = "291467504260989";
+	
+	final static int AUTHORIZE_ACTIVITY_RESULT_CODE = 0;
+    final static int PICK_EXISTING_PHOTO_RESULT_CODE = 1;
+    
+	private Handler mHandler;
+	String[] main_items = { "Update Status", "App Requests", "Get Friends", "Upload Photo",
+            "Place Check-in", "Run FQL Query", "Graph API Explorer", "Token Refresh" };
+    String[] permissions = { "offline_access", "publish_stream", "user_photos", "publish_checkins",
+            "photo_upload" };
+
+	private TextView mText;
+	private ImageView mUserPic;
 	
 	public void loadImages() { 
 		picNum=5;
@@ -41,20 +81,204 @@ public class TestDrawable extends Activity {
 		
 		newGamePic=BitmapFactory.decodeResource(getResources(), R.drawable.newgame);
 	}
-	
+    
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		requestWindowFeature(Window.FEATURE_NO_TITLE);
 		setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
-		loadImages();
-		Preview mPreview = new Preview(this);
-		DrawOnTop mDraw = new DrawOnTop(this);
-		setContentView(mPreview);
-		addContentView(mDraw, new LayoutParams(LayoutParams.WRAP_CONTENT,
-				LayoutParams.WRAP_CONTENT));
+		
+		// Init Facebook
+		mHandler = new Handler();
+        // Create the Facebook Object using the app id.
+        Utility.mFacebook = new Facebook(FACEBOOK_APPID);
+        // Instantiate the asynrunner object for asynchronous api calls.
+        Utility.mAsyncRunner = new AsyncFacebookRunner(Utility.mFacebook);
+
+        // restore session if one exists
+        SessionStore.restore(Utility.mFacebook, this);
+        SessionEvents.addAuthListener(new FbAPIsAuthListener());
+        SessionEvents.addLogoutListener(new FbAPIsLogoutListener());
+        
+        setContentView(R.layout.selection);
+        FrameLayout preview = (FrameLayout) findViewById(R.id.main_capture);
+        mLoginButton = (LoginButton) findViewById(R.id.login);
+        
+        mText = (TextView) findViewById(R.id.txt);
+        mUserPic = (ImageView) findViewById(R.id.user_pic);
+
+        mLoginButton.init(this, AUTHORIZE_ACTIVITY_RESULT_CODE, Utility.mFacebook, permissions);
+        mPreview = new Preview(this);
+        preview.addView(mPreview);
+        
+        //startDrawOnTop();
+        
+//        mLoginButton = new LoginButton(this);
+//        LayoutParams loginButtonLayout = new LayoutParams(LayoutParams.WRAP_CONTENT,
+//				LayoutParams.WRAP_CONTENT);
+//        addContentView(mLoginButton, loginButtonLayout);
+
 	}
 	
+	public void startDrawOnTop() {
+		//loadImages();
+		//mPreview = new Preview(this);
+		DrawOnTop mDraw = new DrawOnTop(this);
+		addContentView(mDraw, new LayoutParams(LayoutParams.WRAP_CONTENT,
+				LayoutParams.WRAP_CONTENT));
+		
+	}
+	
+	protected void onResume() {
+		// Disables power-saving
+		getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+		Log.d(TAG, "onResume called");
+		super.onResume();
+	}
+
+	public void onBackPressed() {
+		// Enables power-saving
+		getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+		Log.d(TAG, "onBackPressed called");
+		super.onBackPressed();
+	}
+	
+	@Override
+	protected void onPause() {
+		super.onPause();
+		mPreview.releaseCamera(); // release the camera immediately on pause event
+
+	}
+	
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        switch (requestCode) {
+        /*
+         * if this is the activity result from authorization flow, do a call
+         * back to authorizeCallback Source Tag: login_tag
+         */
+            case AUTHORIZE_ACTIVITY_RESULT_CODE: {
+                Utility.mFacebook.authorizeCallback(requestCode, resultCode, data);
+                break;
+            }
+            /*
+             * if this is the result for a photo picker from the gallery, upload
+             * the image after scaling it. You can use the Utility.scaleImage()
+             * function for scaling
+             */
+            case PICK_EXISTING_PHOTO_RESULT_CODE: {
+                if (resultCode == Activity.RESULT_OK) {
+                    Uri photoUri = data.getData();
+                    if (photoUri != null) {
+                        Bundle params = new Bundle();
+                        try {
+                            params.putByteArray("photo",
+                                    Utility.scaleImage(getApplicationContext(), photoUri));
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+//                        params.putString("caption", "FbAPIs Sample App photo upload");
+//                        Utility.mAsyncRunner.request("me/photos", params, "POST",
+//                                new PhotoUploadListener(), null);
+                    } else {
+                        Toast.makeText(getApplicationContext(),
+                                "Error selecting image from the gallery.", Toast.LENGTH_SHORT)
+                                .show();
+                    }
+                } else {
+                    Toast.makeText(getApplicationContext(), "No image selected for upload.",
+                            Toast.LENGTH_SHORT).show();
+                }
+                break;
+            }
+        }
+    }
+    
+    
+	/******************
+	 * 
+	 * Facebook
+	 *
+	 */
+    /*
+     * Callback for fetching current user's name, picture, uid.
+     */
+    public class UserRequestListener extends BaseRequestListener {
+
+        @Override
+        public void onComplete(final String response, final Object state) {
+            JSONObject jsonObject;
+            try {
+                jsonObject = new JSONObject(response);
+
+                final String picURL = jsonObject.getString("picture");
+                final String name = jsonObject.getString("name");
+                Utility.userUID = jsonObject.getString("id");
+                Log.d(TAG,"Json resolved, name="+name);
+                
+                mHandler.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        mText.setText("Welcome " + name + "!");
+                        mUserPic.setImageBitmap(Utility.getBitmap(picURL));
+                    }
+                });           
+            } catch (JSONException e) {
+                // TODO Auto-generated catch block
+            	Log.d(TAG,"Json exception, message="+response);
+                e.printStackTrace();
+            }
+        }
+
+    }
+    
+	/*
+     * Request user name, and picture to show on the main screen.
+     */
+    public void requestUserData() {
+        //mText.setText("Fetching user name, profile pic...");
+        Bundle params = new Bundle();
+        params.putString("fields", "name, picture");
+        Utility.mAsyncRunner.request("me", params, new UserRequestListener());
+    }
+    
+	  /*
+     * The Callback for notifying the application when authorization succeeds or
+     * fails.
+     */
+
+    public class FbAPIsAuthListener implements AuthListener {
+
+        @Override
+        public void onAuthSucceed() {
+            requestUserData();
+        }
+
+        @Override
+        public void onAuthFail(String error) {
+            //mText.setText("Login Failed: " + error);
+        }
+    }
+
+    /*
+     * The Callback for notifying the application when log out starts and
+     * finishes.
+     */
+    public class FbAPIsLogoutListener implements LogoutListener {
+        @Override
+        public void onLogoutBegin() {
+            //mText.setText("Logging out...");
+        }
+
+        @Override
+        public void onLogoutFinish() {
+            //mText.setText("You have logged out! ");
+            //mUserPic.setImageBitmap(null);
+        }
+    }
+
+// End of facebook
+    
 	class DrawOnTop extends View {
 		private static final String TAG = "DrawView";
 		
@@ -192,16 +416,24 @@ public class TestDrawable extends Activity {
 		
 		@Override
 		protected void onDraw(Canvas canvas) {
-			// TODO Auto-generated method stub
-			Paint mPaint = new Paint();
-			prepareContent(canvas, mPaint);
 			
-			drawBanners(canvas, mPaint);
-
-			drawPictures(canvas, mPaint);
+			switch (stage) {
+			case LOGIN_STAGE:
+				// login button -> appear
+				// "Please log in" banner -> appear
+				break;
+			case LOGGED_STAGE:
+				// login button ->
+				break;
+				default:
+					
+			}
 			
+//			Paint mPaint = new Paint();
+//			prepareContent(canvas, mPaint);
+//			drawBanners(canvas, mPaint);
+//			drawPictures(canvas, mPaint);
 			super.onDraw(canvas);
-
 		}
 
 		@Override
@@ -213,7 +445,7 @@ public class TestDrawable extends Activity {
 			float x = e.getX();
 			float y = e.getY();
 			
-			
+			if (stage>FRIEND_LIST_DOWNLOADED_STAGE) {
 			switch (e.getAction()) {
 
 			case MotionEvent.ACTION_DOWN:
@@ -225,6 +457,10 @@ public class TestDrawable extends Activity {
 					pressedButton=false;
 					int clickedId = getClickId(x,y);
 					Log.d(TAG, "Selected image:"+Integer.toString(clickedId));
+					if (clickedId==picNum) {
+						Intent i = new Intent(getApplicationContext(), CameraActivity.class);
+		            	startActivity(i);
+					}
 				}
 				break;
 			case MotionEvent.ACTION_MOVE:
@@ -249,7 +485,7 @@ public class TestDrawable extends Activity {
 			mPreviousX = x;
 			mPreviousY = y;
 			invalidate();
-			
+			}
 			return true;
 		}
 	}
@@ -260,7 +496,7 @@ public class TestDrawable extends Activity {
 // ----------------------------------------------------------------------
 class Preview extends SurfaceView implements SurfaceHolder.Callback {
 	SurfaceHolder mHolder;
-	Camera mCamera;
+	public Camera mCamera;
 
 	Preview(Context context) {
 		super(context);
@@ -271,26 +507,41 @@ class Preview extends SurfaceView implements SurfaceHolder.Callback {
 		mHolder.setType(SurfaceHolder.SURFACE_TYPE_PUSH_BUFFERS);
 	}
 
-	public void surfaceCreated(SurfaceHolder holder) {
-		// The Surface has been created, acquire the camera and tell it where
-		// to draw.
-		mCamera = Camera.open(1); // hard coded for face fronting camera
-		mCamera.setDisplayOrientation(90);
+	public void startPreview() {
 		try {
-			mCamera.setPreviewDisplay(holder);
+			mCamera.setPreviewDisplay(mHolder);
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}
+	public void surfaceCreated(SurfaceHolder holder) {
+		// The Surface has been created, acquire the camera and tell it where
+		// to draw.
+		mCamera = Camera.open(1); // hard coded for face fronting camera
+		mCamera.setDisplayOrientation(90);
+		//startPreview();
+//		try {
+//			mCamera.setPreviewDisplay(holder);
+//		} catch (IOException e) {
+//			// TODO Auto-generated catch block
+//			e.printStackTrace();
+//		}
+	}
 
+	public void releaseCamera() {
+		if (mCamera != null) {
+			mCamera.stopPreview();
+			mCamera.release();
+			mCamera = null;
+		}
+	}
 	public void surfaceDestroyed(SurfaceHolder holder) {
 		// Surface will be destroyed when we return, so stop the preview.
 		// Because the CameraDevice object is not a shared resource, it's very
 		// important to release it when the activity is paused.
-		mCamera.stopPreview();
-		mCamera.release();
-		mCamera = null;
+		releaseCamera();
+		
 	}
 
 	public void surfaceChanged(SurfaceHolder holder, int format, int w, int h) {
