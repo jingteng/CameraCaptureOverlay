@@ -8,6 +8,7 @@
 	<RelativeLayout
             android:layout_width="fill_parent"
             android:layout_height="?android:attr/listPreferredItemHeight"
+            android:layout_gravity="center"
             android:padding="6dip"
        		android:background="@drawable/banner_blue">
 
@@ -23,19 +24,67 @@
                 android:id="@+id/txt"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:text="Loading..."
+                android:textSize="20dip"
+                android:textColor="#ffffff"
                 android:layout_toRightOf="@id/user_pic" />
 
             <com.ubmm.LoginButton
                 android:id="@+id/login"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_below="@id/txt"
-                android:layout_toRightOf="@id/user_pic"
+                android:layout_alignParentRight="true"
                 android:src="@drawable/login_button" />
         </RelativeLayout>
         
+    <ImageButton
+        		android:id="@+id/current_gamelist"
+        		android:layout_width="wrap_content"
+        		android:layout_height="wrap_content"
+        		android:layout_marginTop="10dip"
+        		android:layout_gravity="center"
+        		android:background="@null"
+        		android:src="@drawable/current_games"
+        />
+    
     <ListView
         android:id="@+id/games_list"
-        android:layout_width="fill_parent"
-        android:layout_height="fill_parent" />
+        android:layout_gravity="center"
+        android:layout_width="270dip"
+        android:layout_height="50dip" />
+    
+    <ImageView
+        		android:id="@+id/current_gamelistend"
+        		android:layout_width="wrap_content"
+        		android:layout_height="wrap_content"
+        		android:layout_gravity="center"
+        		android:src="@drawable/red_banner"
+        />
+    
+    <ImageButton
+        		android:id="@+id/create_gamelist"
+        		android:layout_width="wrap_content"
+        		android:layout_height="wrap_content"
+        		android:layout_marginTop="10dip"
+        		android:layout_gravity="center"
+        		android:background="@null"
+        		android:src="@drawable/create_game"
+        />
+    
+    <ListView
+        android:id="@+id/friends_list"
+        android:layout_gravity="center"
+        android:layout_width="270dip"
+        android:layout_height="50dip"
+         />
+    
+    <ImageView
+        		android:id="@+id/create_gamelistend"
+        		android:layout_width="wrap_content"
+        		android:layout_height="wrap_content"
+        		android:layout_gravity="center"
+        		android:src="@drawable/yellowbanner"
+        />
+    
 </LinearLayout>

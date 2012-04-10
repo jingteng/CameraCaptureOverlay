@@ -23,15 +23,19 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.ViewGroup.LayoutParams;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.BaseAdapter;
+import android.widget.ImageButton;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -46,7 +50,7 @@ public class TestList extends Activity implements OnItemClickListener {
 	
 	int stage = LOGIN_STAGE;
 	
-	protected ListView friendsList;
+	protected ListView friendsList, gamesList;
     protected static JSONArray jsonArray;
     
 	private LoginButton mLoginButton;
@@ -69,7 +73,28 @@ public class TestList extends Activity implements OnItemClickListener {
 
 	private TextView mText;
 	private ImageView mUserPic;
+    public ImageButton currentGame, createGame;
+    public boolean viewingCurrent=true;
     
+	public ImageView upbanner, botbanner;
+	
+	public void shrinkList(ListView v) {
+		LinearLayout.LayoutParams mParam = new LinearLayout.LayoutParams((int)(407),(int)(0));
+		mParam.gravity = Gravity.CENTER;
+        v.setLayoutParams(mParam);
+		//v.setVisibility(View.INVISIBLE);
+	}
+	
+	public void collapseList(ListView v) {
+		//v.setVisibility(View.VISIBLE);
+		//TODO: minimum height
+		//int fullHeight = v.getCount() * 
+		LinearLayout.LayoutParams mParam = new LinearLayout.LayoutParams((int)(407),(int)(400));
+		mParam.gravity = Gravity.CENTER;
+		
+        v.setLayoutParams(mParam);
+	}
+	
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -96,8 +121,48 @@ public class TestList extends Activity implements OnItemClickListener {
         mUserPic = (ImageView) findViewById(R.id.user_pic);
 
         mLoginButton.init(this, AUTHORIZE_ACTIVITY_RESULT_CODE, Utility.mFacebook, permissions);
-        friendsList = (ListView) findViewById(R.id.games_list);
+        gamesList = (ListView) findViewById(R.id.games_list);
+        friendsList = (ListView)findViewById(R.id.friends_list);
         
+        upbanner = (ImageView) findViewById(R.id.current_gamelist);
+        botbanner = (ImageView) findViewById(R.id.current_gamelistend);
+        //upbanner.setVisibility(View.INVISIBLE);
+        //botbanner.setVisibility(View.INVISIBLE);
+        
+        shrinkList(friendsList);
+        shrinkList(gamesList);
+        
+        createGame = (ImageButton) findViewById(R.id.create_gamelist);
+        createGame.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                // Perform action on click
+            	if (viewingCurrent) {
+            		viewingCurrent = false;
+            		shrinkList(gamesList);
+            		collapseList(friendsList);
+            	} else {
+            		viewingCurrent = true;
+            		shrinkList(friendsList);
+            		collapseList(gamesList);
+            	}
+            }
+        });
+        
+        currentGame = (ImageButton) findViewById(R.id.current_gamelist);
+        currentGame.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                // Perform action on click
+            	if (viewingCurrent) {
+            		viewingCurrent = false;
+            		shrinkList(gamesList);
+            		collapseList(friendsList);
+            	} else {
+            		viewingCurrent = true;
+            		shrinkList(friendsList);
+            		collapseList(gamesList);
+            	}
+            }
+        });
         if (Utility.mFacebook.isSessionValid())
         	requestUserData();
 	}
@@ -315,11 +380,14 @@ public class TestList extends Activity implements OnItemClickListener {
             }
         	runOnUiThread(new Runnable() {
         	     public void run() {
-
-        	//stuff that updates ui
-        	    	 friendsList.setOnItemClickListener(TestList.this);
-        	            friendsList.setAdapter(new FriendListAdapter(TestList.this));
-        	        	
+        	    	 
+					// stuff that updates ui
+					friendsList.setOnItemClickListener(TestList.this);
+					friendsList.setAdapter(new FriendListAdapter(TestList.this));
+					
+					//upbanner.setVisibility(View.VISIBLE);
+			        //botbanner.setVisibility(View.VISIBLE);
+					collapseList(gamesList);
         	    }
         	});
         	
@@ -351,7 +419,7 @@ public class TestList extends Activity implements OnItemClickListener {
                 mHandler.post(new Runnable() {
                     @Override
                     public void run() {
-                        mText.setText("Welcome " + name + "!");
+                        mText.setText(name);
                         mUserPic.setImageBitmap(Utility.getBitmap(picURL));
                         
                         // start to extract friends data
