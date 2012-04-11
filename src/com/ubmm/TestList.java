@@ -19,6 +19,7 @@ import android.app.Activity;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.graphics.Bitmap;
+import android.graphics.Color;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -53,7 +54,7 @@ public class TestList extends Activity implements OnItemClickListener {
 	protected ListView friendsList, gamesList;
     protected static JSONArray jsonArray;
     
-    public UserProfile mProfile;
+    public static UserProfile mProfile; 
     
 	private LoginButton mLoginButton;
 	public String usrname="Loading";
@@ -128,7 +129,11 @@ public class TestList extends Activity implements OnItemClickListener {
         mText = (TextView) findViewById(R.id.txt);
         mUserPic = (ImageView) findViewById(R.id.user_pic);
 
-        mLoginButton.init(this, AUTHORIZE_ACTIVITY_RESULT_CODE, Utility.mFacebook, permissions);
+        mLoginButton.init(this, Facebook.FORCE_DIALOG_AUTH, Utility.mFacebook, permissions);
+        
+        //AUTHORIZE_ACTIVITY_RESULT_CODE
+        //authorize(this.activity, this.permissions,Facebook.FORCE_DIALOG_AUTH,new LoginDialogListener()
+        
         gamesList = (ListView) findViewById(R.id.games_list);
         friendsList = (ListView)findViewById(R.id.friends_list);
         
@@ -246,10 +251,36 @@ public class TestList extends Activity implements OnItemClickListener {
 				long arg3) {
 			String name = mProfile.getGame(position).urUID;
 			Log.d(TAG, "clicked UID = " + name);
+			mProfile.playWith(name);
+			startPlayGame();
 		}
 
 	}
     
+	public void startPlayGame() {
+		if (mProfile.isMyTurn()) {
+			if (mProfile.hasLastGame()) {
+				// start playback intent
+				Log.d(TAG, "Review last round's guess");
+				Log.d(TAG, "word:" + mProfile.getLastGameWord());
+				Log.d(TAG, "videourl:" + mProfile.getLastGameVideo());
+			} else if (mProfile.hasThisGame()) {
+				// start guess intent
+				Log.d(TAG, "watch and guess");
+				Log.d(TAG, "word:" + mProfile.getGameWord());
+				Log.d(TAG, "videourl:" + mProfile.getGameVideo());
+				//mProfile.evolve();
+			} else {
+				// start capture intent
+				Log.d(TAG, "NEW GAME");
+				//mProfile.evolve();
+			}
+			//mProfile.update("goodtry", "dumblocation"); // has to be updated at
+														// the end of the day
+		} else {
+			Log.d(TAG, "not my turn");
+		}
+	}
     
 	/******************
 	 * 
@@ -264,10 +295,15 @@ public class TestList extends Activity implements OnItemClickListener {
     @Override
     public void onItemClick(AdapterView<?> arg0, View v, int position, long arg3) {
         try {
-            final long friendId;
-            friendId = jsonArray.getJSONObject(position).getLong("id");
+            final String friendId;
+            friendId = jsonArray.getJSONObject(position).getString("id");
             String name = jsonArray.getJSONObject(position).getString("name");
-            Log.d(TAG,"clicked name = "+name);
+            
+            Log.d(TAG,"clicked name = "+name+" ID="+friendId);
+            
+            mProfile.playWith(friendId);
+			startPlayGame();
+            
         } catch (JSONException e) {
         	Log.d(TAG,"Error json");
             showToast("Error: " + e.getMessage());
@@ -351,8 +387,12 @@ public class TestList extends Activity implements OnItemClickListener {
             holder.profile_pic.setImageBitmap(helper.getImage(
                     mProfile.getGame(position).urUID, imgURLs.get(position)));
             holder.name.setText(names.get(position));
+            if (mProfile.getGame(position).isMyTurn())
+            	holder.info.setTextColor(Color.BLACK);
+            else
+            	holder.info.setTextColor(holder.name.getTextColors());
             holder.info.setText("Round "+Integer.toString(mProfile.getGame(position).round)
-            		+((mProfile.getGame(position).isMyTurn())?" , your move":" , their move"));
+            		+((mProfile.getGame(position).isMyTurn())?", your move":", their move"));
             //holder.round.setText("Round "+Integer.toString(mProfile.getGame(position).round));
             return hView;
 		}
@@ -503,7 +543,7 @@ public class TestList extends Activity implements OnItemClickListener {
         			
         			//upbanner.setVisibility(View.VISIBLE);
         	        //botbanner.setVisibility(View.VISIBLE);
-        			collapseList(gamesList);
+        			//collapseList(gamesList);
         	    }
         	});
 
@@ -574,6 +614,9 @@ public class TestList extends Activity implements OnItemClickListener {
 											break;
 										case UserProfile.MY_PROFILE_UPDATED_EVENT:
 											Log.d(TAG, "Profile updated");
+											break;
+										case UserProfile.MY_PROFILE_GAME_ADDED_EVENT:
+											new DownloadGameInfoTask().execute();
 											break;
 										}
 									}

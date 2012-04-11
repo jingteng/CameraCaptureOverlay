@@ -12,6 +12,7 @@ public class UserProfile {
 	public static final int MY_PROFILE_DOWNLOADED_EVENT = 0;
 	public static final int MY_PROFILE_UPDATED_EVENT = 1;
 	public static final int MY_PROFILE_REFRESHED_EVENT = 2;
+	public static final int MY_PROFILE_GAME_ADDED_EVENT=3;
 	
 	private String profile="";
 	private String proFilename; // on remote server
@@ -79,8 +80,10 @@ public class UserProfile {
 	
 	public void playWith(String urUID) {
 		currGameId = searchGame(urUID);
-		if (currGameId<0) 
+		if (currGameId<0) {
 			currGameId = newGame(urUID);
+			listener.onProfileEvent(MY_PROFILE_GAME_ADDED_EVENT);
+		}
 		currGame = gameList.get(currGameId);
 	}
 	
