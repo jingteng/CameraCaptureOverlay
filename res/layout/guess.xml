@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    android:background="#FFFFFF"
+    android:orientation="vertical" >
+
+    <TextView
+        android:id="@+id/turn_display"
+        android:layout_width="60dp"
+        android:layout_height="15dp"
+        android:layout_alignParentTop="true"
+        android:background="#42C2EF"
+        android:gravity="center_horizontal"
+        android:text="turn"
+        android:textColor="#FFFFFF"
+        android:textSize="12dp"
+        android:textStyle="bold" >
+    </TextView>
+
+    <TextView
+        android:id="@+id/turn_count"
+        android:layout_width="60dp"
+        android:layout_height="45dp"
+        android:layout_below="@id/turn_display"
+        android:background="#42C2EF"
+        android:gravity="center_horizontal"
+        android:shadowColor="#CECECE"
+        android:text="10"
+        android:textColor="#FFFFFF"
+        android:textSize="30dp"
+        android:textStyle="bold" >
+    </TextView>
+
+    <TextView
+        android:id="@+id/pass_background"
+        android:layout_width="fill_parent"
+        android:layout_height="26dp"
+        android:layout_below="@id/turn_count"
+        android:background="#F7F7F7" >
+    </TextView>
+
+    <ImageView
+        android:id="@+id/player_picture"
+        android:layout_width="60dp"
+        android:layout_height="60dp"
+        android:layout_toRightOf="@id/turn_display"
+        android:src="@drawable/player_image" >
+    </ImageView>
+
+    <TextView
+        android:id="@+id/player_info"
+        android:layout_width="fill_parent"
+        android:layout_height="60dp"
+        android:layout_toRightOf="@id/player_picture"
+        android:background="#FFEF94"
+        android:gravity="center_vertical"
+        android:shadowColor="#CECECE"
+        android:text="  You are guessing\n  Pei Shan&apos;s act."
+        android:textColor="#000000"
+        android:textSize="16dp"
+        android:textStyle="bold" >
+    </TextView>
+
+    <ImageButton
+        android:id="@+id/pass_button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/player_info"
+        android:layout_alignRight="@id/player_info"
+        android:src="@drawable/pass_button" >
+    </ImageButton>
+
+    <TableLayout
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        android:id="@+id/input_table"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:text="input table" >
+    </TableLayout>
+
+    <TableLayout
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        android:id="@+id/answer_table"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_above="@id/input_table"
+        android:paddingBottom="5dp" >
+    </TableLayout>
+
+    <ImageButton
+        android:id="@+id/remove_all"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_above="@id/answer_table"
+        android:src="@drawable/remove_all" >
+    </ImageButton>
+
+    <ImageButton
+        android:id="@+id/shuffle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_above="@id/answer_table"
+        android:layout_alignParentRight="true"
+        android:src="@drawable/shuffle" >
+    </ImageButton>
+
+    <TextView
+        android:id="@+id/answer"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_above="@id/answer_table"
+        android:layout_centerHorizontal="true"
+        android:textColor="#FFFFFF"
+        android:textSize="24dp"
+        android:textStyle="bold" >
+    </TextView>
+
+</RelativeLayout>
