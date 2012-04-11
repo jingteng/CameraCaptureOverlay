@@ -52,7 +52,9 @@
         android:id="@+id/games_list"
         android:layout_gravity="center"
         android:layout_width="270dip"
-        android:layout_height="50dip" />
+        android:layout_height="50dip"
+        android:background="#ffffff"
+          />
     
     <ImageView
         		android:id="@+id/current_gamelistend"
@@ -77,6 +79,7 @@
         android:layout_gravity="center"
         android:layout_width="270dip"
         android:layout_height="50dip"
+        android:minHeight="?android:attr/listPreferredItemHeight" 
          />
     
     <ImageView

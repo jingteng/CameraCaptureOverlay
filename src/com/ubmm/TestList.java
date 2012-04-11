@@ -1,6 +1,8 @@
 package com.ubmm;
 
 import java.io.IOException;
+import java.net.MalformedURLException;
+import java.util.Vector;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -14,12 +16,11 @@ import com.ubmm.SessionEvents.AuthListener;
 import com.ubmm.SessionEvents.LogoutListener;
 
 import android.app.Activity;
-import android.app.AlertDialog;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.graphics.Bitmap;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.util.Log;
@@ -27,7 +28,6 @@ import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.ViewGroup.LayoutParams;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.AdapterView;
@@ -53,6 +53,8 @@ public class TestList extends Activity implements OnItemClickListener {
 	protected ListView friendsList, gamesList;
     protected static JSONArray jsonArray;
     
+    public UserProfile mProfile;
+    
 	private LoginButton mLoginButton;
 	public String usrname="Loading";
 	public Bitmap[] pics;
@@ -77,6 +79,9 @@ public class TestList extends Activity implements OnItemClickListener {
     public boolean viewingCurrent=true;
     
 	public ImageView upbanner, botbanner;
+
+	public Vector<String> imgURLs;
+	public Vector<String> names;
 	
 	public void shrinkList(ListView v) {
 		LinearLayout.LayoutParams mParam = new LinearLayout.LayoutParams((int)(407),(int)(0));
@@ -88,8 +93,9 @@ public class TestList extends Activity implements OnItemClickListener {
 	public void collapseList(ListView v) {
 		//v.setVisibility(View.VISIBLE);
 		//TODO: minimum height
-		//int fullHeight = v.getCount() * 
-		LinearLayout.LayoutParams mParam = new LinearLayout.LayoutParams((int)(407),(int)(400));
+		//int fullHeight = v.getCount() * gheight; 
+		//int len = Math.min(400, fullHeight);
+		LinearLayout.LayoutParams mParam = new LinearLayout.LayoutParams((int)(407),400);
 		mParam.gravity = Gravity.CENTER;
 		
         v.setLayoutParams(mParam);
@@ -100,6 +106,8 @@ public class TestList extends Activity implements OnItemClickListener {
 		super.onCreate(savedInstanceState);
 		requestWindowFeature(Window.FEATURE_NO_TITLE);
 		setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
+		imgURLs = new Vector<String>();
+		names = new Vector<String>();
 		
 		// Init Facebook
 		mHandler = new Handler();
@@ -171,6 +179,8 @@ public class TestList extends Activity implements OnItemClickListener {
 		// Disables power-saving
 		getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 		Log.d(TAG, "onResume called");
+		// TODO:
+		// reload profile
 		super.onResume();
 	}
 
@@ -230,6 +240,16 @@ public class TestList extends Activity implements OnItemClickListener {
         }
     }
     
+	public class gameListItemClickListener implements OnItemClickListener {
+
+		public void onItemClick(AdapterView<?> arg0, View v, int position,
+				long arg3) {
+			String name = mProfile.getGame(position).urUID;
+			Log.d(TAG, "clicked UID = " + name);
+		}
+
+	}
+    
     
 	/******************
 	 * 
@@ -279,6 +299,66 @@ public class TestList extends Activity implements OnItemClickListener {
         });
     }
 
+    public class GameListAdapter extends BaseAdapter {
+
+    	private FriendsGetProfilePics helper;
+    	private LayoutInflater mInflater;
+    	
+//    	public int getItemHeight() {
+//    		return mInflater.inflate( R.layout.friend_item, null ).getHeight();
+//    	}
+    	
+    	GameListAdapter(TestList pList) {
+    		helper = new FriendsGetProfilePics();
+    		helper.setListener(this);
+    		mInflater = LayoutInflater.from(pList.getBaseContext()); 
+    		//gheight = mInflater.inflate( R.layout.friend_item, null ).getHeight();
+    	}
+    	
+		@Override
+		public int getCount() {
+			// TODO Auto-generated method stub
+			return mProfile.gameList.size();
+		}
+
+		@Override
+		public Object getItem(int position) {
+			// TODO Auto-generated method stub
+			return null;
+		}
+
+		@Override
+		public long getItemId(int position) {
+			// TODO Auto-generated method stub
+			return 0;
+		}
+
+		@Override
+		public View getView(int position, View convertView, ViewGroup parent) {
+			View hView = convertView;
+			
+            if (convertView == null) {
+                hView = mInflater.inflate(R.layout.game_item, null);
+                GameViewHolder holder = new GameViewHolder();
+                holder.profile_pic = (ImageView) hView.findViewById(R.id.profile_pic);
+                holder.name = (TextView) hView.findViewById(R.id.name);
+                holder.info = (TextView) hView.findViewById(R.id.info);
+                hView.setTag(holder);
+            }
+            
+            GameViewHolder holder = (GameViewHolder) hView.getTag();
+            
+            holder.profile_pic.setImageBitmap(helper.getImage(
+                    mProfile.getGame(position).urUID, imgURLs.get(position)));
+            holder.name.setText(names.get(position));
+            holder.info.setText("Round "+Integer.toString(mProfile.getGame(position).round)
+            		+((mProfile.getGame(position).isMyTurn())?" , your move":" , their move"));
+            //holder.round.setText("Round "+Integer.toString(mProfile.getGame(position).round));
+            return hView;
+		}
+    	
+    }
+    
     /**
      * Definition of the list adapter
      */
@@ -361,6 +441,12 @@ public class TestList extends Activity implements OnItemClickListener {
         TextView info;
     }
     
+    class GameViewHolder {
+        ImageView profile_pic;
+        TextView name;
+        TextView info;
+    }
+    
     /*
      * callback after friends are fetched via me/friends or fql query.
      */
@@ -400,12 +486,70 @@ public class TestList extends Activity implements OnItemClickListener {
         }
     }
     
-    /*
+    
+    private class DownloadGameInfoTask extends AsyncTask<Void, Integer, Long> {
+
+    	protected void onProgressUpdate(Integer... progress) {
+        }
+
+        protected void onPostExecute(Long result) {
+        	// start game list
+        	runOnUiThread(new Runnable() {
+        	     public void run() {
+        	    	 
+        			// stuff that updates ui
+        			gamesList.setOnItemClickListener(new gameListItemClickListener());
+        			gamesList.setAdapter(new GameListAdapter(TestList.this));
+        			
+        			//upbanner.setVisibility(View.VISIBLE);
+        	        //botbanner.setVisibility(View.VISIBLE);
+        			collapseList(gamesList);
+        	    }
+        	});
+
+        }
+
+		@Override
+		protected Long doInBackground(Void... params) {
+			// download all player info
+			Bundle b = new Bundle();
+			b.putString("fields", "name, picture");
+			String response;
+			imgURLs.clear();
+			names.clear();
+			
+			for (int i=0; i<mProfile.gameList.size(); i++) {
+				try {
+					response = Utility.mFacebook.request(mProfile.getGame(i).urUID,b);
+					
+					JSONObject jsonObject = new JSONObject(response);
+					String thisName, thisURL;
+					thisURL = jsonObject.getString("picture");
+					thisName= jsonObject.getString("name");
+	                imgURLs.add(thisURL);
+	                names.add(thisName);
+	                Log.d(TAG,"player resolved name="+thisName+" url="+thisURL);
+	                
+				} catch (MalformedURLException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				} catch (JSONException e) {
+					e.printStackTrace();
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+			return null;
+		}
+    }
+    
+     /*
      * Callback for fetching current user's name, picture, uid.
      */
     public class UserRequestListener extends BaseRequestListener {
 
-        @Override
+		@Override
         public void onComplete(final String response, final Object state) {
             JSONObject jsonObject;
             try {
@@ -415,6 +559,27 @@ public class TestList extends Activity implements OnItemClickListener {
                 final String name = jsonObject.getString("name");
                 Utility.userUID = jsonObject.getString("id");
                 Log.d(TAG,"Json resolved, name="+name);
+                
+				runOnUiThread(new Runnable() {
+					public void run() {
+
+						mProfile = new UserProfile(Utility.userUID,
+								new ProfileEventListener() {
+									public void onProfileEvent(int event) {
+										switch (event) {
+										case UserProfile.MY_PROFILE_DOWNLOADED_EVENT:
+											// load game players' name and pic
+											new DownloadGameInfoTask().execute();
+
+											break;
+										case UserProfile.MY_PROFILE_UPDATED_EVENT:
+											Log.d(TAG, "Profile updated");
+											break;
+										}
+									}
+								});
+					}
+				});
                 
                 mHandler.post(new Runnable() {
                     @Override
@@ -484,4 +649,5 @@ public class TestList extends Activity implements OnItemClickListener {
         }
     }
     // End of facebook
+
 }
