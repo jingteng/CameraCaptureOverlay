@@ -38,10 +38,10 @@
             android:name=".SplashActivity">
         </activity>
         <activity
-            android:name=".CameraCaptureOverlayActivity">
+            android:name=".TestList">
         </activity>
         <activity
-            android:name=".TestList"
+            android:name=".CameraCaptureOverlayActivity"
             android:label="@string/app_name"
             android:screenOrientation="portrait" >
             <intent-filter>
