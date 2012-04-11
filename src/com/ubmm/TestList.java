@@ -260,10 +260,17 @@ public class TestList extends Activity implements OnItemClickListener {
 	public void startPlayGame() {
 		if (mProfile.isMyTurn()) {
 			if (mProfile.hasLastGame()) {
+				
 				// start playback intent
 				Log.d(TAG, "Review last round's guess");
 				Log.d(TAG, "word:" + mProfile.getLastGameWord());
 				Log.d(TAG, "videourl:" + mProfile.getLastGameVideo());
+				
+				
+				Intent i = new Intent(getApplicationContext(), ButtonTestActivity.class);
+            	startActivity(i);
+				
+				
 			} else if (mProfile.hasThisGame()) {
 				// start guess intent
 				Log.d(TAG, "watch and guess");
@@ -274,6 +281,10 @@ public class TestList extends Activity implements OnItemClickListener {
 				// start capture intent
 				Log.d(TAG, "NEW GAME");
 				//mProfile.evolve();
+				
+				Intent i = new Intent(getApplicationContext(), CameraActivity.class);
+            	startActivity(i);
+				
 			}
 			//mProfile.update("goodtry", "dumblocation"); // has to be updated at
 														// the end of the day
