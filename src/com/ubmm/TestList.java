@@ -20,6 +20,7 @@ import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.graphics.Bitmap;
 import android.graphics.Color;
+import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -251,7 +252,9 @@ public class TestList extends Activity implements OnItemClickListener {
 				long arg3) {
 			String name = mProfile.getGame(position).urUID;
 			Log.d(TAG, "clicked UID = " + name);
-			mProfile.playWith(name);
+
+			mProfile.playWith(name, names.get(position), helper.getImage(name, imgURLs.get(position)));
+			
 			startPlayGame();
 		}
 
@@ -266,16 +269,18 @@ public class TestList extends Activity implements OnItemClickListener {
 				Log.d(TAG, "word:" + mProfile.getLastGameWord());
 				Log.d(TAG, "videourl:" + mProfile.getLastGameVideo());
 				
-				
-				Intent i = new Intent(getApplicationContext(), ButtonTestActivity.class);
+				Intent i = new Intent(getApplicationContext(), ViewLastGameActivity.class);
             	startActivity(i);
-				
 				
 			} else if (mProfile.hasThisGame()) {
 				// start guess intent
 				Log.d(TAG, "watch and guess");
 				Log.d(TAG, "word:" + mProfile.getGameWord());
 				Log.d(TAG, "videourl:" + mProfile.getGameVideo());
+				
+				Intent i = new Intent(getApplicationContext(), ButtonTestActivity.class);
+            	startActivity(i);
+            	
 				//mProfile.evolve();
 			} else {
 				// start capture intent
@@ -312,7 +317,7 @@ public class TestList extends Activity implements OnItemClickListener {
             
             Log.d(TAG,"clicked name = "+name+" ID="+friendId);
             
-            mProfile.playWith(friendId);
+            mProfile.playWith(friendId, names.get(position),Utility.model.getImage(name, imgURLs.get(position)));
 			startPlayGame();
             
         } catch (JSONException e) {
@@ -345,10 +350,11 @@ public class TestList extends Activity implements OnItemClickListener {
             }
         });
     }
-
+    
+	public FriendsGetProfilePics helper;
+	
     public class GameListAdapter extends BaseAdapter {
 
-    	private FriendsGetProfilePics helper;
     	private LayoutInflater mInflater;
     	
 //    	public int getItemHeight() {
@@ -356,7 +362,8 @@ public class TestList extends Activity implements OnItemClickListener {
 //    	}
     	
     	GameListAdapter(TestList pList) {
-    		helper = new FriendsGetProfilePics();
+    		if (helper==null) 
+    			helper = new FriendsGetProfilePics();
     		helper.setListener(this);
     		mInflater = LayoutInflater.from(pList.getBaseContext()); 
     		//gheight = mInflater.inflate( R.layout.friend_item, null ).getHeight();

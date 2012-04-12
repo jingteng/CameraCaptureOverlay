@@ -26,7 +26,7 @@ public class CameraCaptureOverlayActivity extends Activity {
         		case UserProfile.MY_PROFILE_DOWNLOADED_EVENT:
         			Log.d(TAG,"profile downloaded");
         			startButton.setEnabled(true);
-        			pro.playWith(HerUID);
+        			pro.playWith(HerUID,"",null);
         			break;
         		case UserProfile.MY_PROFILE_UPDATED_EVENT:
         			Log.d(TAG,"Profile updated");

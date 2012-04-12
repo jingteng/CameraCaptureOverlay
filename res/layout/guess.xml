@@ -4,7 +4,12 @@
     android:layout_height="fill_parent"
     android:background="#FFFFFF"
     android:orientation="vertical" >
-
+    
+    <SurfaceView
+        android:id="@+id/guessing_view"
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+        android:layout_gravity="center" />
     <TextView
         android:id="@+id/turn_display"
         android:layout_width="60dp"

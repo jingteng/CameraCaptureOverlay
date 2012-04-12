@@ -21,7 +21,12 @@
         <activity
             android:name=".CameraActivity">
         </activity>
-        
+
+        <activity
+            android:name=".ViewLastGameActivity">
+        </activity>
+            
+            
         <activity
             android:name=".ConfirmVideo">
         </activity>

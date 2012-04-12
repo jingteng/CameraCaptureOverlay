@@ -1,21 +1,33 @@
 package com.ubmm;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Hashtable;
 
+import com.ubmm.TestList.FriendListAdapter;
+
 import android.app.Activity;
+import android.content.Intent;
 import android.graphics.Color;
 import android.graphics.Point;
 import android.graphics.Typeface;
+import android.media.MediaPlayer;
+import android.media.MediaPlayer.OnCompletionListener;
+import android.media.MediaPlayer.OnPreparedListener;
 import android.os.Bundle;
+import android.os.Handler;
 import android.util.Log;
 import android.view.Display;
 import android.view.Gravity;
+import android.view.SurfaceHolder;
+import android.view.SurfaceView;
 import android.view.View;
+import android.view.WindowManager;
 import android.view.View.OnClickListener;
 import android.view.Window;
 import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.TableRow.LayoutParams;
 import android.widget.Button;
 import android.widget.LinearLayout;
@@ -23,10 +35,10 @@ import android.widget.TableLayout;
 import android.widget.TableRow;
 import android.widget.TextView;
 
-public class ButtonTestActivity extends Activity {
+public class ButtonTestActivity extends Activity implements SurfaceHolder.Callback, OnPreparedListener {
 
 	/** Activity constants */
-	private String answerKey = "ABCDE";	
+	private String answerKey;	
 	private static final int NUM_INPUT_BUTTONS_PER_ROW = 7;
 	private static final int MAX_NUM_LETTERS_PER_ROW = 8;	
 	private static final int NUM_ROWS = 2;	
@@ -58,12 +70,27 @@ public class ButtonTestActivity extends Activity {
 	/** Used to store all the letters left in the input panel */
 	ArrayList<String> letterList;
 	
+	
+	/* for background media view */
+	MediaPlayer mediaPlayer;
+	SurfaceView surfaceView;
+	SurfaceHolder surfaceHolder;
+	boolean playing = false;
+	
+	String filePath;
+	/* end of background media view */
+	
 	@Override
 	public void onCreate(Bundle savedInstanceState) {		 
 		super.onCreate(savedInstanceState);
 		requestWindowFeature(Window.FEATURE_NO_TITLE);
 		setContentView(R.layout.guess);		
 
+		answerKey = TestList.mProfile.getGameWord();
+		filePath = TestList.mProfile.getGameVideo();
+		
+		Log.d(TAG,"The video is:"+filePath+",the word is : "+answerKey);
+		
 		// TODO: Get the actual length of the answer from the server.
 		answerLength = answerKey.length();
 		
@@ -81,6 +108,13 @@ public class ButtonTestActivity extends Activity {
 		/** Add pass button */
 		pass = (ImageButton) findViewById(R.id.pass_button);
 		pass.setBackgroundColor(Color.TRANSPARENT);
+		pass.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+            	TestList.mProfile.reset();
+            	//TODO:
+            	// goto another activity that show you you failed
+            	gotoAction();
+            }});
 		
 		/** Remove all letters from the answer table. */
 		removeAll = (ImageButton) findViewById(R.id.remove_all);
@@ -106,6 +140,19 @@ public class ButtonTestActivity extends Activity {
 		
 		/** result = { "correct!", "guess again!" } */
 		result = (TextView) findViewById(R.id.answer);
+		
+		surfaceView = (SurfaceView) findViewById(R.id.guessing_view);
+		surfaceHolder = surfaceView.getHolder();
+		surfaceHolder.addCallback(this);
+		surfaceHolder.setType(SurfaceHolder.SURFACE_TYPE_PUSH_BUFFERS);
+		
+		TextView dumb1 = (TextView) findViewById(R.id.turn_count);
+		dumb1.setText(Integer.toString(TestList.mProfile.getGame().round));
+		TextView dumb2 = (TextView) findViewById(R.id.player_info);
+		dumb2.setText(
+				"  You are guessing\n  "+TestList.mProfile.getPlayerName()+"'s\n  act.");
+		ImageView dumb3 = (ImageView)findViewById(R.id.player_picture); 
+		dumb3.setImageBitmap(TestList.mProfile.urImage);
 	}
 
 	private void removeLetterFromAnswerTable(int currentButtonId) {
@@ -200,6 +247,7 @@ public class ButtonTestActivity extends Activity {
 			inputRows[i].setLayoutParams(new LayoutParams(LayoutParams.FILL_PARENT, LayoutParams.WRAP_CONTENT));
 		}
 
+		char[] letters=WordUtility.getRandomLetters(NUM_ROWS * NUM_INPUT_BUTTONS_PER_ROW, answerKey);
 		/**
 		 * Create and display input buttons.
 		 */
@@ -207,7 +255,7 @@ public class ButtonTestActivity extends Activity {
 			final int currentIndex = i;
 			
 			// TODO Replace dummy letters with the ones obtained from the server.
-			char temp = (char)('A' + i);
+			char temp = letters[i]; //(char)('A' + i);
 			final String currentText = Character.toString(temp);
 			
 			letterList.add(currentText);
@@ -260,7 +308,17 @@ public class ButtonTestActivity extends Activity {
 								answerRow.setBackgroundResource(R.color.green_background);								
 								result.setBackgroundResource(R.drawable.answer_textview_right);								
 								result.setText("correct!");
-								for (TextView tv : answerButtons) tv.setBackgroundResource(R.drawable.green);										
+								for (TextView tv : answerButtons) tv.setBackgroundResource(R.drawable.green);
+								Handler myHandler = new Handler();
+								myHandler.postDelayed(new Runnable() {
+									@Override
+									public void run() {
+										// Change state here
+										TestList.mProfile.evolve();
+										gotoAction();
+									}
+								}, 500);
+								
 							} else {
 								/** The user input is wrong. */
 								answerState = ANSWER_WRONG;
@@ -319,4 +377,115 @@ public class ButtonTestActivity extends Activity {
 			}
 		}
 	}
+	
+	
+	@Override
+	public void surfaceChanged(SurfaceHolder holder, int format, int width,
+			int height) {
+		Log.d(TAG, "surface changed");
+	}
+
+	@Override
+	public void surfaceCreated(SurfaceHolder holder) {
+		Log.d(TAG, "surface created");
+		playVideo();
+	}
+
+	@Override
+	public void surfaceDestroyed(SurfaceHolder holder) {
+		Log.d(TAG, "surface destroyed");
+		if (playing) {
+			playing = false;
+			if (mediaPlayer!=null) {
+			mediaPlayer.stop();
+			mediaPlayer=null;
+			}
+		}
+	}
+
+	public void onPrepared(MediaPlayer mp) {
+        Log.d(TAG, "onPrepared called");
+        playing = true;
+        mediaPlayer.start();
+        mediaPlayer.setLooping(true);
+        Log.d(TAG, "mediaPlayer started");
+    }
+	
+	public void onBackPressed() {
+		// Enables power-saving
+		Log.d(TAG, "onBackPressed called");
+		getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+		//gotoAction(); 
+		//super.onBackPressed();
+	}
+	
+	private void gotoAction() {
+		if (playing) {
+			playing=false;
+			mediaPlayer.stop();
+		}
+		releaseMediaPlayer();
+		
+		Log.d(TAG, "calling guess intent");
+		Intent i = new Intent(getApplicationContext(), CameraActivity.class); // start this game
+    	startActivity(i);
+		
+    	finish();
+	}
+	
+	public void playVideo() {
+		// Obtain a media player instance
+		mediaPlayer = new MediaPlayer();
+		mediaPlayer.setOnPreparedListener(this);
+		
+		mediaPlayer.setOnCompletionListener(new OnCompletionListener() {
+			@Override
+			public void onCompletion(MediaPlayer arg0) {
+				Log.d(TAG, "on completion");
+				//gotoAction();
+			}
+		});
+		
+		mediaPlayer.setDisplay(surfaceHolder);
+		mediaPlayer.reset();
+		try {
+			mediaPlayer.setDataSource(filePath);
+			mediaPlayer.prepare();
+		} catch (IllegalArgumentException e) {
+			Log.d(TAG, "Illegal Argument Exceptioin");
+			e.printStackTrace();
+		} catch (IllegalStateException e) {
+			Log.d(TAG, "Illegal State Exceptioin");
+			e.printStackTrace();
+		} catch (IOException e) {
+			Log.d(TAG, "IO Exception");
+			e.printStackTrace();
+		}
+	}
+	
+    @Override
+    protected void onPause() {
+        super.onPause();
+        releaseMediaPlayer();
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        releaseMediaPlayer();
+    }
+
+    private void releaseMediaPlayer() {
+        if (mediaPlayer != null) {
+            mediaPlayer.release();
+            mediaPlayer = null;
+        }
+    }
+	protected void onResume() {
+		// Disables power-saving
+		getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+		Log.d(TAG, "onResume called");
+		super.onResume();
+	}
+
 }

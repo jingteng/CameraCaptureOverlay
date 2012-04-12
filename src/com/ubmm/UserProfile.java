@@ -2,6 +2,7 @@ package com.ubmm;
 
 import java.util.Vector;
 
+import android.graphics.Bitmap;
 import android.os.Handler;
 
 public class UserProfile {
@@ -21,6 +22,9 @@ public class UserProfile {
 	public Vector<Games> gameList;
 	private int currGameId;
 	private Games currGame;
+	
+	private String urName;
+	public Bitmap urImage;
 	
 	UserProfile(String uid, ProfileEventListener l) {
 		listener = l;
@@ -78,13 +82,19 @@ public class UserProfile {
 		return -1;
 	}
 	
-	public void playWith(String urUID) {
+	public void playWith(String urUID, String fbname, Bitmap thumbnail) {
+		urImage = thumbnail;
+		urName = fbname;
 		currGameId = searchGame(urUID);
 		if (currGameId<0) {
 			currGameId = newGame(urUID);
 			listener.onProfileEvent(MY_PROFILE_GAME_ADDED_EVENT);
 		}
 		currGame = gameList.get(currGameId);
+	}
+	
+	public String getPlayerName() {
+		return urName;
 	}
 	
 	// new game happens when the user initiates a game with a friend
@@ -153,7 +163,7 @@ public class UserProfile {
 				uploadProfileSync();
 				// update the other party's profile
             	UserProfile urProfile = new UserProfile(currGame.urUID);
-            	urProfile.playWith(UID);
+            	urProfile.playWith(UID,"",null);
             	urProfile.getGame().updateU(newword);
             	urProfile.uploadProfileSync();
             	listener.onProfileEvent(MY_PROFILE_UPDATED_EVENT);
