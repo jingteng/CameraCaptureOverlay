@@ -226,6 +226,9 @@ public class CameraActivity extends Activity {
 			
 			// update the game and profiles
 			TestList.mProfile.update(guessword, videoFileName);
+			//finish();
+			Intent i = new Intent (getApplicationContext(), TestList.class);
+			startActivity(i);
 			finish();
 		} else {
 			initCamera();

@@ -30,7 +30,9 @@ public class Games {
 		myWord = "-";
 		urWord = "-";
 		
-		reset();
+		//reset();
+		round=1;
+		myTurn=true;
 	}
 	
 	// load an existing game

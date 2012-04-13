@@ -88,7 +88,8 @@ public class UserProfile {
 		currGameId = searchGame(urUID);
 		if (currGameId<0) {
 			currGameId = newGame(urUID);
-			listener.onProfileEvent(MY_PROFILE_GAME_ADDED_EVENT);
+			if (listener!=null)
+				listener.onProfileEvent(MY_PROFILE_GAME_ADDED_EVENT);
 		}
 		currGame = gameList.get(currGameId);
 	}

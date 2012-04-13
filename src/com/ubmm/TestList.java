@@ -319,10 +319,10 @@ public class TestList extends Activity implements OnItemClickListener {
             final String friendId;
             friendId = jsonArray.getJSONObject(position).getString("id");
             String name = jsonArray.getJSONObject(position).getString("name");
-            
+            String picURL = jsonArray.getJSONObject(position).getString("picture");
             Log.d(TAG,"clicked name = "+name+" ID="+friendId);
             
-            mProfile.playWith(friendId, names.get(position),Utility.model.getImage(name, imgURLs.get(position)));
+            mProfile.playWith(friendId, name,Utility.model.getImage(name, picURL));
 			startPlayGame();
             
         } catch (JSONException e) {

@@ -51,9 +51,12 @@ public class NewGameActivity extends Activity implements OnClickListener {
 		default:
 			selected = s[0];			
 		}
+		
 		Intent i = new Intent(getApplicationContext(), CameraActivity.class);
 		i.putExtra("word", selected);
 		startActivity(i);
+		
+		finish();
 	}
 	
 }
