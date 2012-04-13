@@ -40,6 +40,7 @@ public class CameraActivity extends Activity {
 	ImageButton switchButton;
 	TextView countDown, timing;
 
+	public String guessword="";
 	// Add a listener to the Capture button
 
 	void setCaptureButtonText(String t) {
@@ -222,6 +223,9 @@ public class CameraActivity extends Activity {
 
 		if (result==0) {
 			releaseCamera();
+			
+			// update the game and profiles
+			TestList.mProfile.update(guessword, videoFileName);
 			finish();
 		} else {
 			initCamera();
@@ -246,6 +250,13 @@ public class CameraActivity extends Activity {
 		setContentView(R.layout.camera);
 		setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
 		new Handler();
+		
+		Intent sender = getIntent();
+		guessword = sender.getStringExtra("word");
+		
+		TextView wordView = (TextView) findViewById(R.id.theword);
+		
+		wordView.setText(guessword);
 		// Create our Preview view and set it as the content of our activity.
 		initCamera();
 		setupPreview();

@@ -5,8 +5,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Hashtable;
 
-import com.ubmm.TestList.FriendListAdapter;
-
 import android.app.Activity;
 import android.content.Intent;
 import android.graphics.Color;
@@ -110,10 +108,7 @@ public class ButtonTestActivity extends Activity implements SurfaceHolder.Callba
 		pass.setBackgroundColor(Color.TRANSPARENT);
 		pass.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
-            	TestList.mProfile.reset();
-            	//TODO:
-            	// goto another activity that show you you failed
-            	gotoAction();
+            	gotoAction(0);
             }});
 		
 		/** Remove all letters from the answer table. */
@@ -313,9 +308,7 @@ public class ButtonTestActivity extends Activity implements SurfaceHolder.Callba
 								myHandler.postDelayed(new Runnable() {
 									@Override
 									public void run() {
-										// Change state here
-										TestList.mProfile.evolve();
-										gotoAction();
+										gotoAction(1);
 									}
 								}, 500);
 								
@@ -419,17 +412,28 @@ public class ButtonTestActivity extends Activity implements SurfaceHolder.Callba
 		//super.onBackPressed();
 	}
 	
-	private void gotoAction() {
+	private void gotoAction(int result) {
 		if (playing) {
 			playing=false;
 			mediaPlayer.stop();
 		}
 		releaseMediaPlayer();
 		
-		Log.d(TAG, "calling guess intent");
-		Intent i = new Intent(getApplicationContext(), CameraActivity.class); // start this game
+		Intent i;
+		if (result > 0) {
+			Log.d(TAG, "guessed right, calling new game activity");
+			i = new Intent(getApplicationContext(), NewGameActivity.class); 
+			// Change state here
+			TestList.mProfile.evolve();
+		} else {
+			Log.d(TAG, "guess failed, calling transit activity");
+			i = new Intent(getApplicationContext(), TransitActivity.class);
+			i.putExtra("message", "You failed!\nTap to continue");
+			i.putExtra("imageid", R.drawable.background_portrait);
+			i.putExtra("classname", "NewGameActivity");
+			TestList.mProfile.reset();
+		}
     	startActivity(i);
-		
     	finish();
 	}
 	

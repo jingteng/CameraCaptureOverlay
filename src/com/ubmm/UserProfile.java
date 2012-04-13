@@ -152,7 +152,7 @@ public class UserProfile {
 		h.uploadText(profile, proFilename);
 	}
 	
-	public void update(final String newword, String videoFile) {
+	public void update(final String newword, final String videoFile) {
 		currGame.update(newword);
 		updateProfile(); // gameList -> profile
 		
@@ -166,6 +166,7 @@ public class UserProfile {
             	urProfile.playWith(UID,"",null);
             	urProfile.getGame().updateU(newword);
             	urProfile.uploadProfileSync();
+            	h.uploadFile(videoFile, currGame.myVideoURL);
             	listener.onProfileEvent(MY_PROFILE_UPDATED_EVENT);
             }
         });

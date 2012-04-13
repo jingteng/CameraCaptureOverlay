@@ -20,7 +20,6 @@ import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.graphics.Bitmap;
 import android.graphics.Color;
-import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -262,6 +261,9 @@ public class TestList extends Activity implements OnItemClickListener {
     
 	public void startPlayGame() {
 		if (mProfile.isMyTurn()) {
+			
+			Intent i = new Intent(getApplicationContext(), TransitActivity.class);
+			
 			if (mProfile.hasLastGame()) {
 				
 				// start playback intent
@@ -269,8 +271,10 @@ public class TestList extends Activity implements OnItemClickListener {
 				Log.d(TAG, "word:" + mProfile.getLastGameWord());
 				Log.d(TAG, "videourl:" + mProfile.getLastGameVideo());
 				
-				Intent i = new Intent(getApplicationContext(), ViewLastGameActivity.class);
-            	startActivity(i);
+				i.putExtra("message", "Tap to see "+mProfile.getPlayerName()+
+						"\n guess the word "+mProfile.getLastGameWord());
+				i.putExtra("imageid", R.drawable.background_portrait);
+				i.putExtra("classname", "ViewLastGameActivity");
 				
 			} else if (mProfile.hasThisGame()) {
 				// start guess intent
@@ -278,21 +282,22 @@ public class TestList extends Activity implements OnItemClickListener {
 				Log.d(TAG, "word:" + mProfile.getGameWord());
 				Log.d(TAG, "videourl:" + mProfile.getGameVideo());
 				
-				Intent i = new Intent(getApplicationContext(), ButtonTestActivity.class);
-            	startActivity(i);
-            	
-				//mProfile.evolve();
+				i.putExtra("message", "Tap to see "+mProfile.getPlayerName()+
+						"'s\naction and guess");
+				i.putExtra("imageid", R.drawable.background_portrait);
+				i.putExtra("classname", "ButtonTestActivity");
+				
 			} else {
 				// start capture intent
 				Log.d(TAG, "NEW GAME");
 				//mProfile.evolve();
-				
-				Intent i = new Intent(getApplicationContext(), CameraActivity.class);
-            	startActivity(i);
-				
+				Intent j = new Intent(getApplicationContext(), NewGameActivity.class);
+				startActivity(j);
+				return;
 			}
-			//mProfile.update("goodtry", "dumblocation"); // has to be updated at
-														// the end of the day
+			//mProfile.update("goodtry", "dumblocation"); // has to be updated at the end of the day
+			
+			startActivity(i);
 		} else {
 			Log.d(TAG, "not my turn");
 		}

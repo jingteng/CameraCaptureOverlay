@@ -23,6 +23,10 @@
         </activity>
 
         <activity
+            android:name=".TransitActivity">
+        </activity>
+        
+        <activity
             android:name=".ViewLastGameActivity">
         </activity>
             
@@ -45,6 +49,10 @@
         
         <activity
             android:name=".ButtonTestActivity">
+        </activity>
+
+        <activity
+            android:name=".NewGameActivity">
         </activity>
         
         <activity

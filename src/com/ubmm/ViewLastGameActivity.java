@@ -113,9 +113,16 @@ public class ViewLastGameActivity extends Activity implements SurfaceHolder.Call
 		releaseMediaPlayer();
 		
 		Log.d(TAG, "calling guess intent");
-		Intent i = new Intent(getApplicationContext(), ButtonTestActivity.class); // start this game
-    	startActivity(i);
+
+//		Intent i = new Intent(getApplicationContext(), ButtonTestActivity.class); // start this game
+//		startActivity(i);
+		Intent i = new Intent(getApplicationContext(), TransitActivity.class);
 		
+		i.putExtra("message", "Tap to see\n"+TestList.mProfile.getPlayerName()+
+				"'s\naction and guess");
+		i.putExtra("imageid", R.drawable.background_portrait);
+		i.putExtra("classname", "ButtonTestActivity");
+		startActivity(i);
     	finish();
 	}
 	

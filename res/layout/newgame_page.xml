@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent" 
+		android:orientation="vertical"
+        android:background="@drawable/background_portrait">
+
+    <LinearLayout
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentTop="true"
+        android:orientation="vertical"
+        android:layout_gravity="center"
+        android:gravity="center" >
+
+        <TextView
+            android:id="@+id/newgame_info"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Please select a word"
+            android:textSize="30dip"
+            android:textColor="#ffffff" />
+
+        <TextView
+            android:id="@+id/newgame_word1"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="TextView"
+            android:textSize="20dip"
+            android:textColor="#ffffff" />
+
+        <TextView
+            android:id="@+id/newgame_word2"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="TextView"
+            android:textSize="20dip"
+            android:textColor="#ffffff" />
+
+        <TextView
+            android:id="@+id/newgame_word3"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="TextView"
+            android:textSize="20dip"
+            android:textColor="#ffffff" />
+
+    </LinearLayout>
+    
+</RelativeLayout>

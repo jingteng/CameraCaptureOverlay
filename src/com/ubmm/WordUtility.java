@@ -41,4 +41,31 @@ public class WordUtility {
 		return shuffleWord(temp);
 	}
 	
+	public static String getRandomWord() {
+		Random r = new Random();
+		return wordList[r.nextInt(wordList.length)];
+	}
+	
+	public static String[] getRandomThreeWords() {
+		
+		int l = wordList.length;
+		String[] s = new String[3];
+		int[] arr = new int[l];
+		Random r = new Random();
+		
+		for (int i=0; i<l; i++) {
+			arr[i]=i;
+		}
+		
+		for (int i=0; i<3; i++) {
+			int j=i+r.nextInt(l-i);
+			int temp = arr[i];
+			arr[i]=arr[j];
+			arr[j]=temp;
+			s[i] = wordList[arr[i]];
+		}
+		
+		return s;
+	}
+	
 }
