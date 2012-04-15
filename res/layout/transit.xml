@@ -1,0 +1,62 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    android:background="#FFFFFF"
+    android:orientation="vertical" >
+    
+    <TextView
+        android:id="@+id/transit_turn_display"
+        android:layout_width="60dp"
+        android:layout_height="15dp"
+        android:layout_alignParentTop="true"
+        android:background="#42C2EF"
+        android:gravity="center_horizontal"
+        android:text="turn"
+        android:textColor="#FFFFFF"
+        android:textSize="12dp"
+        android:textStyle="bold" >
+    </TextView>
+
+    <TextView
+        android:id="@+id/transit_turn_count"
+        android:layout_width="60dp"
+        android:layout_height="45dp"
+        android:layout_below="@id/transit_turn_display"
+        android:background="#42C2EF"
+        android:gravity="center_horizontal"        
+        android:text="10"
+        android:textColor="#FFFFFF"
+        android:textSize="30dp"
+        android:textStyle="bold" >
+    </TextView>    
+
+    <ImageView
+        android:id="@+id/transit_player_picture"
+        android:layout_width="60dp"
+        android:layout_height="60dp"
+        android:layout_toRightOf="@id/transit_turn_display"
+        android:src="@drawable/player_image" >
+    </ImageView>  
+    
+    <TextView
+        android:id="@+id/transit_player_info"
+        android:layout_width="fill_parent"
+        android:layout_height="60dp"               
+        android:layout_toRightOf="@id/transit_player_picture"
+        android:background="#FFEF94"
+        android:gravity="center_vertical"        
+        android:text="Pei Shan"
+        android:textColor="#000000"
+        android:textSize="16dp"
+        android:paddingLeft="5dp"
+        android:textStyle="bold" >
+    </TextView>    
+    
+    <ImageView
+        android:id="@+id/transit_background_image"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"        
+        android:gravity="center_horizontal"        
+        >
+    </ImageView>
+</RelativeLayout>

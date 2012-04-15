@@ -266,14 +266,14 @@ public class TestList extends Activity implements OnItemClickListener {
 			
 			if (mProfile.hasLastGame()) {
 				
+				/** Tap to watch */
 				// start playback intent
 				Log.d(TAG, "Review last round's guess");
 				Log.d(TAG, "word:" + mProfile.getLastGameWord());
 				Log.d(TAG, "videourl:" + mProfile.getLastGameVideo());
 				
-				i.putExtra("message", "Tap to see "+mProfile.getPlayerName()+
-						"\n guess the word "+mProfile.getLastGameWord());
-				i.putExtra("imageid", R.drawable.background_portrait);
+				i.putExtra("intent", "watch");				
+				i.putExtra("playerInfo", "You are watching " + mProfile.getPlayerName() + "\nguess the word " + mProfile.getLastGameWord());
 				i.putExtra("classname", "ViewLastGameActivity");
 				
 			} else if (mProfile.hasThisGame()) {

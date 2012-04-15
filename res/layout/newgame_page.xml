@@ -3,49 +3,40 @@
         android:layout_width="fill_parent"
         android:layout_height="fill_parent" 
 		android:orientation="vertical"
-        android:background="@drawable/background_portrait">
-
-    <LinearLayout
-        android:layout_width="fill_parent"
-        android:layout_height="fill_parent"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentTop="true"
-        android:orientation="vertical"
-        android:layout_gravity="center"
-        android:gravity="center" >
-
-        <TextView
-            android:id="@+id/newgame_info"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Please select a word"
-            android:textSize="30dip"
-            android:textColor="#ffffff" />
+        android:background="@drawable/word_select">    
 
         <TextView
             android:id="@+id/newgame_word1"
+            android:layout_centerHorizontal="true"
+            android:paddingTop="178dp"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_height="wrap_content"            
             android:text="TextView"
             android:textSize="20dip"
-            android:textColor="#ffffff" />
+            android:textStyle="bold"            
+            android:textColor="#000000" />
 
         <TextView
             android:id="@+id/newgame_word2"
+            android:layout_below="@id/newgame_word1"
+			android:layout_centerHorizontal="true"
+			android:paddingTop="20dp"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="TextView"
             android:textSize="20dip"
-            android:textColor="#ffffff" />
+            android:textStyle="bold"
+            android:textColor="#000000" />
 
         <TextView
             android:id="@+id/newgame_word3"
+            android:layout_below="@id/newgame_word2"
+			android:layout_centerHorizontal="true"
+			android:paddingTop="20dp"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="TextView"
             android:textSize="20dip"
-            android:textColor="#ffffff" />
-
-    </LinearLayout>
-    
+            android:textStyle="bold"
+            android:textColor="#000000" />    
 </RelativeLayout>

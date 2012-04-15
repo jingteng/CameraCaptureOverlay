@@ -117,10 +117,9 @@ public class ViewLastGameActivity extends Activity implements SurfaceHolder.Call
 //		Intent i = new Intent(getApplicationContext(), ButtonTestActivity.class); // start this game
 //		startActivity(i);
 		Intent i = new Intent(getApplicationContext(), TransitActivity.class);
-		
-		i.putExtra("message", "Tap to see\n"+TestList.mProfile.getPlayerName()+
-				"'s\naction and guess");
-		i.putExtra("imageid", R.drawable.background_portrait);
+		/** Tap to guess */
+		i.putExtra("intent", "guess");
+		i.putExtra("playerInfo", "You are guessing \n" + TestList.mProfile.getPlayerName() + "'s act.");
 		i.putExtra("classname", "ButtonTestActivity");
 		startActivity(i);
     	finish();
