@@ -69,7 +69,8 @@ public class HTTPUtility {
 	            InputStream instream = entity.getContent();
 	            result= convertStreamToString(instream);
 	            // now you have the string representation of the HTML request
-	            if (result.substring(0,6).equals("<HTML>")) {
+	            if (result.length()<6 ||
+	            		result.substring(0,6).equals("<HTML>")) {
 	            	// throw no network exception
 	            	System.exit(0);
 	            }

@@ -19,6 +19,7 @@ import android.os.Environment;
 import android.os.Handler;
 import android.util.Log;
 import android.view.View;
+import android.view.Window;
 import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.FrameLayout;
@@ -226,9 +227,6 @@ public class CameraActivity extends Activity {
 			
 			// update the game and profiles
 			TestList.mProfile.update(guessword, videoFileName);
-			//finish();
-			Intent i = new Intent (getApplicationContext(), TestList.class);
-			startActivity(i);
 			finish();
 		} else {
 			initCamera();
@@ -250,8 +248,11 @@ public class CameraActivity extends Activity {
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
+		
+		requestWindowFeature(Window.FEATURE_NO_TITLE);
 		setContentView(R.layout.camera);
 		setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
+		
 		new Handler();
 		
 		Intent sender = getIntent();

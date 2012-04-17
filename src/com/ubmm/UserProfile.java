@@ -3,12 +3,13 @@ package com.ubmm;
 import java.util.Vector;
 
 import android.graphics.Bitmap;
+import android.os.AsyncTask;
 import android.os.Handler;
 
 public class UserProfile {
 	HTTPUtility h;
 	ProfileEventListener listener;
-	Handler mHandler;
+	//Handler mHandler;
 	
 	public static final int MY_PROFILE_DOWNLOADED_EVENT = 0;
 	public static final int MY_PROFILE_UPDATED_EVENT = 1;
@@ -29,7 +30,7 @@ public class UserProfile {
 	UserProfile(String uid, ProfileEventListener l) {
 		listener = l;
 		h = new HTTPUtility();
-		mHandler = new Handler();
+		//mHandler = new Handler();
 		UID = uid;
 		proFilename = uid + ".dsthusr";
 		gameList = new Vector<Games>();
@@ -38,25 +39,75 @@ public class UserProfile {
 	
 	UserProfile(String uid) {
 		h = new HTTPUtility();
-		mHandler = new Handler();
+		//mHandler = new Handler();
 		UID = uid;
 		proFilename = uid + ".dsthusr";
 		gameList = new Vector<Games>();	
 		downloadProfileSync();
 	}
 	
+	interface GeneralAsyncTaskInterface {
+		public Integer doInBackground(Void... params);
+		public void onPostExecute(Integer res);
+		public void onProgressUpdate();
+	}
+	
+	class GeneralHTTPAsyncTask extends AsyncTask<Void, Void, Integer> {
+		
+		GeneralAsyncTaskInterface methods;
+		
+		GeneralHTTPAsyncTask(GeneralAsyncTaskInterface m) {
+			methods = m;
+		}
+		
+		protected void onProgressUpdate() {
+			methods.onProgressUpdate();
+		}
+
+		protected void onPostExecute(Integer result) {
+			// showDialog("Downloaded " + result + " bytes");
+			methods.onPostExecute(result);
+		}
+
+		@Override
+		protected Integer doInBackground(Void... params) {
+			// TODO Auto-generated method stub
+			return methods.doInBackground(params);
+		}
+	}
+	
 	private void downloadProfile() {
-		mHandler.post(new Runnable() {
-            @Override
-            public void run() {
+//		mHandler.post(new Runnable() {
+//            @Override
+//            public void run() {
+//            	profile = h.downloadText(proFilename);
+//            	if (profile==null) {
+//        			profile=""; //create a new profile
+//        		} else
+//        			getGameList();
+//            	listener.onProfileEvent(MY_PROFILE_DOWNLOADED_EVENT);
+//            }
+//        });
+		
+		GeneralHTTPAsyncTask task = new GeneralHTTPAsyncTask( new GeneralAsyncTaskInterface() {
+			public Integer doInBackground(Void... params) {
             	profile = h.downloadText(proFilename);
             	if (profile==null) {
         			profile=""; //create a new profile
         		} else
         			getGameList();
-            	listener.onProfileEvent(MY_PROFILE_DOWNLOADED_EVENT);
-            }
-        });
+            	return 1;
+			}
+			
+			public void onPostExecute(Integer res){
+				listener.onProfileEvent(MY_PROFILE_DOWNLOADED_EVENT);
+			}
+			
+			public void onProgressUpdate() {
+				;
+			}
+		});
+		task.execute();
 	}
 	
 	private void downloadProfileSync() {
@@ -157,9 +208,23 @@ public class UserProfile {
 		currGame.update(newword);
 		updateProfile(); // gameList -> profile
 		
-		mHandler.post(new Runnable() {
-            @Override
-            public void run() {
+//		mHandler.post(new Runnable() {
+//            @Override
+//            public void run() {
+//            	//uploadFile(videoFile);
+//				uploadProfileSync();
+//				// update the other party's profile
+//            	UserProfile urProfile = new UserProfile(currGame.urUID);
+//            	urProfile.playWith(UID,"",null);
+//            	urProfile.getGame().updateU(newword);
+//            	urProfile.uploadProfileSync();
+//            	h.uploadFile(videoFile, currGame.myVideoURL);
+//            	listener.onProfileEvent(MY_PROFILE_UPDATED_EVENT);
+//            }
+//        });
+		
+		GeneralHTTPAsyncTask task = new GeneralHTTPAsyncTask( new GeneralAsyncTaskInterface() {
+			public Integer doInBackground(Void... params) {
             	//uploadFile(videoFile);
 				uploadProfileSync();
 				// update the other party's profile
@@ -168,9 +233,18 @@ public class UserProfile {
             	urProfile.getGame().updateU(newword);
             	urProfile.uploadProfileSync();
             	h.uploadFile(videoFile, currGame.myVideoURL);
-            	listener.onProfileEvent(MY_PROFILE_UPDATED_EVENT);
-            }
-        });
+            	return 1;
+			}
+			
+			public void onPostExecute(Integer res){
+				listener.onProfileEvent(MY_PROFILE_UPDATED_EVENT);
+			}
+			
+			public void onProgressUpdate() {
+				;
+			}
+		});
+		task.execute();
 		
 	}
 	

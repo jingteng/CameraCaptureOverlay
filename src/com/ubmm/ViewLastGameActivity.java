@@ -13,6 +13,7 @@ import android.util.Log;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.View;
+import android.view.Window;
 import android.view.WindowManager;
 import android.view.View.OnClickListener;
 import android.widget.ImageButton;
@@ -36,12 +37,14 @@ public class ViewLastGameActivity extends Activity implements SurfaceHolder.Call
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
+		
+		requestWindowFeature(Window.FEATURE_NO_TITLE);
 		setContentView(R.layout.lastgame_layout);
 		setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
 
 		//Intent sender = getIntent();
 		//filePath = sender.getExtras().getString("videofile");
-		filePath = TestList.mProfile.getGameVideo();
+		filePath = TestList.mProfile.getLastGameVideo();
 		
 		Log.d(TAG, "get video file path = " + filePath);
 

@@ -184,9 +184,19 @@ public class TestList extends Activity implements OnItemClickListener {
 		// Disables power-saving
 		getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 		Log.d(TAG, "onResume called");
-		// TODO:
-		// reload profile
+		
+		
 		super.onResume();
+		//gamesList.invalidate();
+		
+		if (mProfile!=null) {
+			// reload profile
+//			shrinkList(friendsList);
+//			friendsList.setVisibility(View.INVISIBLE);
+//			shrinkList(gamesList);
+//			gamesList.setVisibility(View.INVISIBLE);
+//			mProfile.refreshUsrProfile();
+		}
 	}
 
 	public void onBackPressed() {
@@ -323,6 +333,9 @@ public class TestList extends Activity implements OnItemClickListener {
             Log.d(TAG,"clicked name = "+name+" ID="+friendId);
             
             mProfile.playWith(friendId, name,Utility.model.getImage(name, picURL));
+            imgURLs.add(picURL);
+            names.add(name);
+            Log.d(TAG,"new player joined gameList name="+name+" url="+picURL);
 			startPlayGame();
             
         } catch (JSONException e) {
@@ -376,19 +389,19 @@ public class TestList extends Activity implements OnItemClickListener {
     	
 		@Override
 		public int getCount() {
-			// TODO Auto-generated method stub
+			// Auto-generated method stub
 			return mProfile.gameList.size();
 		}
 
 		@Override
 		public Object getItem(int position) {
-			// TODO Auto-generated method stub
+			// Auto-generated method stub
 			return null;
 		}
 
 		@Override
 		public long getItemId(int position) {
-			// TODO Auto-generated method stub
+			// Auto-generated method stub
 			return 0;
 		}
 
@@ -459,7 +472,7 @@ public class TestList extends Activity implements OnItemClickListener {
             try {
                 jsonObject = jsonArray.getJSONObject(position);
             } catch (JSONException e1) {
-                // TODO Auto-generated catch block
+                // Auto-generated catch block
                 e1.printStackTrace();
             }
             View hView = convertView;
@@ -563,10 +576,13 @@ public class TestList extends Activity implements OnItemClickListener {
         			// stuff that updates ui
         			gamesList.setOnItemClickListener(new gameListItemClickListener());
         			gamesList.setAdapter(new GameListAdapter(TestList.this));
+        			gamesList.setVisibility(View.VISIBLE);
+        			friendsList.setVisibility(View.VISIBLE);
         			
-        			//upbanner.setVisibility(View.VISIBLE);
-        	        //botbanner.setVisibility(View.VISIBLE);
-        			//collapseList(gamesList);
+        			// reset UI
+            		viewingCurrent = true;
+            		shrinkList(friendsList);
+            		collapseList(gamesList);
         	    }
         	});
 
@@ -594,12 +610,12 @@ public class TestList extends Activity implements OnItemClickListener {
 	                Log.d(TAG,"player resolved name="+thisName+" url="+thisURL);
 	                
 				} catch (MalformedURLException e) {
-					// TODO Auto-generated catch block
+					// Auto-generated catch block
 					e.printStackTrace();
 				} catch (JSONException e) {
 					e.printStackTrace();
 				} catch (IOException e) {
-					// TODO Auto-generated catch block
+					// Auto-generated catch block
 					e.printStackTrace();
 				}
 			}
@@ -637,6 +653,10 @@ public class TestList extends Activity implements OnItemClickListener {
 											break;
 										case UserProfile.MY_PROFILE_UPDATED_EVENT:
 											Log.d(TAG, "Profile updated");
+											// TODO: refresh the list (profile is updated already)
+											//gamesList.getAdapter().notifyDataSetChanged(); 
+											// To let this above method work, need to move the gameadapter as a class member
+											gamesList.invalidateViews(); 
 											break;
 										case UserProfile.MY_PROFILE_GAME_ADDED_EVENT:
 											new DownloadGameInfoTask().execute();
@@ -653,8 +673,6 @@ public class TestList extends Activity implements OnItemClickListener {
                         mText.setText(name);
                         mUserPic.setImageBitmap(Utility.getBitmap(picURL));
                         
-                        // start to extract friends data
-                        String graph_or_fql = "graph";
                         Bundle params = new Bundle();
                         params.putString("fields", "name, picture, location");
                         Utility.mAsyncRunner.request("me/friends", params,
@@ -662,7 +680,7 @@ public class TestList extends Activity implements OnItemClickListener {
                     }
                 });           
             } catch (JSONException e) {
-                // TODO Auto-generated catch block
+                // Auto-generated catch block
             	Log.d(TAG,"Json exception, message="+response);
                 e.printStackTrace();
             }
