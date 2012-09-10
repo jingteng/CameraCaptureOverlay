@@ -16,6 +16,7 @@ import android.widget.Toast;
 
 public class TestFacebook extends Activity {
 
+	// 291467504260989
 	private static final String FACEBOOK_APPID = "291467504260989";
 	
     //Facebook facebook;
